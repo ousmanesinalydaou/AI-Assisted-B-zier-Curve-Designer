@@ -1,0 +1,26 @@
+\frametitle{Key Implementation: Bézier Evaluation}
+\begin{verbatim}
+function evaluateBezier(
+  curve: CubicBezier,
+  t: number
+): Point2D {
+  const mt = 1 - t;
+  const mt2 = mt * mt;
+  const mt3 = mt2 * mt;
+  const t2 = t * t;
+  const t3 = t2 * t;
+
+  return {
+    x: mt3 * curve.p0.x +
+       3 * mt2 * t * curve.p1.x +
+       3 * mt * t2 * curve.p2.x +
+       t3 * curve.p3.x,
+    y: mt3 * curve.p0.y +
+       3 * mt2 * t * curve.p1.y +
+       3 * mt * t2 * curve.p2.y +
+       t3 * curve.p3.y
+  };
+}
+\end{verbatim}
+
+\textbf{Efficiency:} Pre-compute powers, minimize operations
