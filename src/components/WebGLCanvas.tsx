@@ -295,38 +295,56 @@ export const WebGLCanvas: React.FC = () => {
     const canvas = canvasRef.current!;
     const controlPoints = [curve.p0, curve.p1, curve.p2, curve.p3];
     
-    controlPoints.forEach((point, pointIndex) => {
-      const isSelected = selectedControlPoint?.strokeId === strokeId &&
-                        selectedControlPoint?.curveIndex === curveIndex &&
-                        selectedControlPoint?.pointIndex === pointIndex;
-      
-      const geometry = new THREE.SphereGeometry(renderOptions.controlPointSize / 2);
-      const material = new THREE.MeshBasicMaterial({
-        color: isSelected ? 0xff0000 : (pointIndex === 0 || pointIndex === 3 ? 0x00ff00 : 0x0088ff),
-      });
-      
-      const sphere = new THREE.Mesh(geometry, material);
-      sphere.position.set(point.x, canvas.clientHeight - point.y, 0);
-      sphere.userData = { strokeId, curveIndex, pointIndex };
-      if (sceneRef.current) {
-        sceneRef.current.add(sphere);
-      }
-    });
-
-    // Render control polygon
+    // Render control polygon first (behind the points)
     const polylinePoints = [curve.p0, curve.p1, curve.p2, curve.p3];
     const geometry = new THREE.BufferGeometry();
     const positions = polylinePoints.flatMap(p => [p.x, canvas.clientHeight - p.y, 0]);
     
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     const material = new THREE.LineBasicMaterial({ 
-      color: 0x888888, 
-      opacity: 0.5, 
+      color: 0x666666, 
+      opacity: 0.4, 
       transparent: true,
       linewidth: 1,
     });
     const line = new THREE.Line(geometry, material);
     sceneRef.current.add(line);
+    
+    // Render control points with enhanced visuals
+    controlPoints.forEach((point, pointIndex) => {
+      const isSelected = selectedControlPoint?.strokeId === strokeId &&
+                        selectedControlPoint?.curveIndex === curveIndex &&
+                        selectedControlPoint?.pointIndex === pointIndex;
+      
+      const size = isSelected ? renderOptions.controlPointSize * 1.5 : renderOptions.controlPointSize;
+      const geometry = new THREE.CircleGeometry(size / 2, 16);
+      
+      // Different colors for endpoints vs control points
+      let color: number;
+      if (pointIndex === 0 || pointIndex === 3) {
+        color = isSelected ? 0xff0000 : 0x00cc00; // Green for endpoints
+      } else {
+        color = isSelected ? 0xff0000 : 0x4488ff; // Blue for control points
+      }
+      
+      const material = new THREE.MeshBasicMaterial({ color });
+      
+      const circle = new THREE.Mesh(geometry, material);
+      circle.position.set(point.x, canvas.clientHeight - point.y, 0);
+      circle.userData = { strokeId, curveIndex, pointIndex };
+      if (sceneRef.current) {
+        sceneRef.current.add(circle);
+      }
+      
+      // Add white outline for better visibility
+      const outlineGeometry = new THREE.CircleGeometry(size / 2 + 1, 16);
+      const outlineMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
+      const outline = new THREE.Mesh(outlineGeometry, outlineMaterial);
+      outline.position.set(point.x, canvas.clientHeight - point.y, -0.01);
+      if (sceneRef.current) {
+        sceneRef.current.add(outline);
+      }
+    });
   };
 
   const renderMeasurements = () => {
@@ -463,7 +481,8 @@ export const WebGLCanvas: React.FC = () => {
             const cp = controlPoints[pointIndex];
             const distance = Math.sqrt((point.x - cp.x) ** 2 + (point.y - cp.y) ** 2);
             
-            if (distance < renderOptions.controlPointSize * 2) {
+            // Larger hit area for easier selection (30 pixels)
+            if (distance < 30) {
               selectControlPoint(selectedStroke, curveIndex, pointIndex);
               controlPointClicked = true;
               break;
@@ -554,12 +573,11 @@ export const WebGLCanvas: React.FC = () => {
 
   const handlePointerUp = useCallback(() => {
     setIsPanning(false);
-    if (selectedControlPoint) {
-      clearSelection();
-    } else if (isDrawing) {
+    // Don't clear control point selection - let user click elsewhere or press Escape to deselect
+    if (isDrawing) {
       endDrawing();
     }
-  }, [selectedControlPoint, isDrawing, clearSelection, endDrawing]);
+  }, [isDrawing, endDrawing]);
 
   const handleWheel = useCallback((event: React.WheelEvent) => {
     event.preventDefault();
@@ -633,12 +651,14 @@ export const WebGLCanvas: React.FC = () => {
           const resampled = resamplePoints(stroke.points, 5);
           const smoothed = smoothPoints(resampled, 3);
           
-          // Fit curve
+          // Fit a single cubic Bézier curve
           const fitter = new CurveFitter(fittingOptions);
           const result = fitter.fitCurve(smoothed);
           
           // Update stroke with fitted curve
-          stroke.fittedCurves = [result.curve];
+          if (result.curve) {
+            stroke.fittedCurves = [result.curve];
+          }
         } catch (error) {
           console.error('Failed to fit curve:', error);
         }

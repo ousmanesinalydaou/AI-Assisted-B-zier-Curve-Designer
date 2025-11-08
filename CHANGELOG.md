@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.1] - 2025-11-08
+
+### Enhanced
+- **Improved Control Point Editing**
+  - Increased hit area to 30 pixels for easier control point selection
+  - Enhanced visual feedback with color-coded control points
+  - Endpoints (P₀, P₃) displayed in green, control points (P₁, P₂) in blue
+  - Selected control points turn red and enlarge to 1.5× size
+  - Control polygon now visible when curve is selected
+  - White outlines added to all control points for better visibility
+  
+### Changed
+- Simplified curve fitting to single Bézier per stroke (removed multi-segment)
+- Control point selection persists during dragging (doesn't deselect on pointer up)
+
+### Added
+- Keyboard shortcut: Press `Escape` to deselect control points or curves
+- Visual control polygon (dashed line) connecting all four control points
+
+### Fixed
+- Removed complex multi-segment curve fitting that was creating excessive segments
+- Improved curve stability and predictability
+
 ## [1.0.0] - 2025-11-07
 
 ### Added

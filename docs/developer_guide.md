@@ -246,6 +246,98 @@ export const MyComponent: React.FC<MyComponentProps> = ({
 };
 ```
 
+### Key Implementation: Control Point Editing
+
+The control point editing system allows users to interactively modify Bézier curves:
+
+**Architecture**:
+```typescript
+// State Management (useAppStore.ts)
+interface AppState {
+  selectedControlPoint: {
+    strokeId: string;
+    curveIndex: number;
+    pointIndex: number; // 0-3 for P₀, P₁, P₂, P₃
+  } | null;
+  
+  selectControlPoint: (strokeId: string, curveIndex: number, pointIndex: number) => void;
+  updateControlPoint: (strokeId: string, curveIndex: number, pointIndex: number, position: Point2D) => void;
+  clearSelection: () => void;
+}
+```
+
+**Rendering**:
+```typescript
+// WebGLCanvas.tsx - Control Point Rendering
+const renderControlPoints = (strokeId: string, curveIndex: number, curve: CubicBezier) => {
+  const controlPoints = [curve.p0, curve.p1, curve.p2, curve.p3];
+  
+  controlPoints.forEach((point, pointIndex) => {
+    const isSelected = selectedControlPoint?.strokeId === strokeId &&
+                      selectedControlPoint?.curveIndex === curveIndex &&
+                      selectedControlPoint?.pointIndex === pointIndex;
+    
+    // Size: 1.5x when selected for better visibility
+    const size = isSelected ? renderOptions.controlPointSize * 1.5 : renderOptions.controlPointSize;
+    
+    // Color coding: Green for endpoints (0,3), Blue for control points (1,2)
+    const color = (pointIndex === 0 || pointIndex === 3) 
+      ? (isSelected ? 0xff0000 : 0x00cc00)  // Green endpoints
+      : (isSelected ? 0xff0000 : 0x4488ff);  // Blue control points
+  });
+};
+```
+
+**Interaction**:
+```typescript
+// Pointer Down: Select control point (30px hit area for easy selection)
+const handlePointerDown = (event) => {
+  if (selectedStroke && showControlPoints) {
+    const point = getCanvasCoordinates(event);
+    
+    for (const [pointIndex, cp] of controlPoints.entries()) {
+      const distance = Math.sqrt((point.x - cp.x) ** 2 + (point.y - cp.y) ** 2);
+      
+      if (distance < 30) { // Large hit area for easy selection
+        selectControlPoint(strokeId, curveIndex, pointIndex);
+        break;
+      }
+    }
+  }
+};
+
+// Pointer Move: Drag control point with real-time curve update
+const handlePointerMove = (event) => {
+  if (selectedControlPoint) {
+    const point = getCanvasCoordinates(event);
+    updateControlPoint(
+      selectedControlPoint.strokeId,
+      selectedControlPoint.curveIndex,
+      selectedControlPoint.pointIndex,
+      point
+    );
+  }
+};
+
+// Escape Key: Deselect control point
+useEffect(() => {
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      clearSelection();
+    }
+  };
+  window.addEventListener('keydown', handleKeyDown);
+  return () => window.removeEventListener('keydown', handleKeyDown);
+}, []);
+```
+
+**Key Features**:
+- **30-pixel hit area**: Makes control points easy to select
+- **Color coding**: Green for endpoints (P₀, P₃), blue for control points (P₁, P₂)
+- **Visual feedback**: Selected points are red and 1.5× larger
+- **Real-time updates**: Curve redraws instantly as you drag
+- **Keyboard support**: Press Escape to deselect
+
 2. **Add to Storybook** (if using):
 ```typescript
 // stories/MyComponent.stories.tsx

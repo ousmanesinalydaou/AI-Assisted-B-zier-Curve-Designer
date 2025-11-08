@@ -24,6 +24,7 @@ function App() {
     toggleMeasurements,
     toggleSelectMode,
     clearCanvas,
+    clearSelection,
     strokes,
     selectedStroke,
     saveProject,
@@ -93,6 +94,9 @@ function App() {
           setShowTutorial(false);
         } else if (showAIPanel) {
           toggleAIPanel();
+        } else {
+          // Clear selection if nothing else to close
+          clearSelection();
         }
         return;
       }

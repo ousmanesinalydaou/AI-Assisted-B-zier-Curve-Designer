@@ -13,9 +13,12 @@ A production-ready web application for interactive Bézier curve design featurin
 
 ### 🎨 Interactive Design
 - **Freehand Drawing**: Natural stroke input with mouse and touch support
-- **Real-time Fitting**: Instant cubic Bézier curve generation
-- **Live Editing**: Drag control points with immediate visual feedback
-- **Multi-curve Support**: Create complex compositions with multiple curves
+- **Real-time Fitting**: Instant cubic Bézier curve generation with automatic optimization
+- **Interactive Control Points**: Edit curves by dragging any of the 4 control points (P₀, P₁, P₂, P₃)
+- **Visual Feedback**: Color-coded control points (green endpoints, blue control points) with real-time updates
+- **Easy Selection**: 30-pixel hit area for effortless control point selection and manipulation
+- **Select Mode**: Toggle between drawing and editing modes with keyboard shortcuts
+- **Multi-curve Support**: Create and edit complex compositions with multiple curves
 
 ### 🧮 Advanced Mathematics
 - **Iterative Least-Squares**: Newton-Raphson optimization for minimal error

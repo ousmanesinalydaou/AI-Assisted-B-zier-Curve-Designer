@@ -77,23 +77,41 @@ The application uses advanced mathematical algorithms to convert your freehand d
 Once a curve is fitted, you can fine-tune it by manipulating control points:
 
 **Control Point Types**:
-- **P₀ (Green)**: Start point of the curve
-- **P₁ (Blue)**: First control point (affects curve shape near start)
-- **P₂ (Blue)**: Second control point (affects curve shape near end)  
-- **P₃ (Green)**: End point of the curve
+- **P₀ (Green)**: Start point of the curve - moves the beginning endpoint
+- **P₁ (Blue)**: First control point - controls departure angle and curvature from P₀
+- **P₂ (Blue)**: Second control point - controls arrival angle and curvature to P₃  
+- **P₃ (Green)**: End point of the curve - moves the ending endpoint
 
-**Editing Process**:
-1. Click on a curve to select it
-2. Control points and the control polygon become visible
-3. Drag any control point to modify the curve shape
-4. The curve updates in real-time as you drag
-5. Click elsewhere to deselect
+**How to Edit Control Points**:
+1. **Enable Select Mode**: Press `V` or click the select tool in the toolbar
+2. **Select a Curve**: Click on any drawn curve (it will turn orange/red)
+3. **View Control Points**: Four control points appear automatically (2 green, 2 blue)
+4. **Select a Control Point**: Click on any control point (30-pixel hit area for easy selection)
+5. **Drag to Modify**: Click and drag the selected control point to reshape the curve
+6. **Real-time Update**: The curve updates instantly as you drag
+7. **Deselect**: Press `Escape` or click elsewhere on the canvas
 
-**Control Point Behavior**:
-- **P₀ and P₃**: Move the curve endpoints
-- **P₁ and P₂**: Control the curve's "pull" direction and strength
+**Visual Feedback**:
+- **Unselected control points**: Normal size with white outline
+- **Selected control point**: 1.5× larger size, turns red
+- **Control polygon**: Dashed gray line connecting all four points shows curve structure
+- **Curve highlight**: Selected curve appears in orange/red color
+
+**Control Point Effects on Curve Shape**:
+- **Moving P₀ (green)**: Translates the curve's starting position
+- **Moving P₁ (blue)**: Changes how sharply the curve departs from P₀
+  - Move away from P₀ for gentler curves
+  - Move closer to P₀ for tighter curves
+- **Moving P₂ (blue)**: Changes how the curve approaches P₃
+  - Move away from P₃ for gentler arrival
+  - Move closer to P₃ for sharper arrival
+- **Moving P₃ (green)**: Translates the curve's ending position
+
+**Tips for Effective Editing**:
+- Adjust P₁ and P₂ to control curve tension and smoothness
+- Keep control points roughly aligned for C¹ continuity
+- Use equal distances from endpoints for symmetric curves
 - Longer control arms create more pronounced curves
-- Control points align with tangent vectors at endpoints
 
 ## Advanced Features
 
@@ -164,31 +182,45 @@ Fine-tune the fitting algorithm through the Property Panel:
 
 | Shortcut | Action |
 |----------|--------|
+| Key | Action |
+|-----|--------|
+| `V` | Toggle select/draw mode |
+| `M` | Toggle measurements display |
+| `R` | Reset view (zoom and pan) |
+| `G` | Toggle snap to grid |
+| `C` | Toggle curvature visualization |
 | `Space` | Start/stop drawing mode |
-| `Escape` | Deselect current curve |
+| `Escape` | Deselect current curve or control point |
 | `Delete` | Delete selected curve |
 | `Ctrl+Z` | Undo last action |
 | `Ctrl+Y` | Redo last action |
+| `Ctrl+D` | Duplicate selected curve |
 | `Ctrl+A` | Select all curves |
 | `+` / `-` | Zoom in/out |
-| `Arrow Keys` | Fine-tune selected control point |
 
 ### Mouse and Touch Controls
 
-**Drawing**:
-- **Click + Drag**: Draw a new curve
-- **Single Click**: Select existing curve
-- **Double Click**: Enter edit mode
+**Drawing Mode** (Default):
+- **Click + Drag**: Draw a freehand curve
+- **Release**: Automatically fit Bézier curve to stroke
+
+**Select Mode** (Press `V`):
+- **Click on Curve**: Select the curve (turns orange/red)
+- **Click on Control Point**: Select and start dragging (30px hit area)
+- **Click + Drag Control Point**: Reshape the curve in real-time
+- **Click Empty Area**: Deselect current selection
+- **Press `Escape`**: Deselect control point or curve
 
 **Control Point Editing**:
-- **Drag Control Point**: Modify curve shape
-- **Shift + Drag**: Constrain to horizontal/vertical
-- **Alt + Drag**: Symmetric control point adjustment
-- **Right Click**: Context menu with curve options
+- **Click on Point**: Select control point (turns red and enlarges)
+- **Drag**: Move control point to modify curve shape
+- **Release**: Complete the modification
+- All four control points (P₀, P₁, P₂, P₃) are editable
 
 **Navigation**:
 - **Mouse Wheel**: Zoom in/out
 - **Middle Click + Drag**: Pan around canvas
+- **Ctrl + Left Click + Drag**: Pan around canvas
 - **Pinch Gesture** (touch): Zoom
 - **Two-finger Drag** (touch): Pan
 
