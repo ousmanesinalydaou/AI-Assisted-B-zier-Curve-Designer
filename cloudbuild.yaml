@@ -1,0 +1,120 @@
+# Google Cloud Build configuration for automated deployment
+# This file defines the build steps for deploying both frontend and backend to Cloud Run
+
+steps:
+  # Build Frontend Docker Image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-frontend'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/bezier-designer-frontend:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/bezier-designer-frontend:latest'
+      - '-f'
+      - 'Dockerfile'
+      - '.'
+    timeout: '1200s'
+
+  # Build Backend Docker Image
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'build-backend'
+    args:
+      - 'build'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/bezier-designer-backend:$COMMIT_SHA'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/bezier-designer-backend:latest'
+      - '-f'
+      - 'backend/Dockerfile'
+      - './backend'
+    timeout: '1200s'
+
+  # Push Frontend Image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-frontend'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/bezier-designer-frontend:$COMMIT_SHA'
+    waitFor: ['build-frontend']
+
+  # Push Backend Image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    id: 'push-backend'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/bezier-designer-backend:$COMMIT_SHA'
+    waitFor: ['build-backend']
+
+  # Deploy Frontend to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-frontend'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'bezier-designer-frontend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/bezier-designer-frontend:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '512Mi'
+      - '--cpu'
+      - '1'
+      - '--max-instances'
+      - '10'
+      - '--set-env-vars'
+      - 'NODE_ENV=production'
+    waitFor: ['push-frontend']
+
+  # Deploy Backend to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    id: 'deploy-backend'
+    entrypoint: gcloud
+    args:
+      - 'run'
+      - 'deploy'
+      - 'bezier-designer-backend'
+      - '--image'
+      - 'gcr.io/$PROJECT_ID/bezier-designer-backend:$COMMIT_SHA'
+      - '--region'
+      - 'us-central1'
+      - '--platform'
+      - 'managed'
+      - '--allow-unauthenticated'
+      - '--port'
+      - '8080'
+      - '--memory'
+      - '2Gi'
+      - '--cpu'
+      - '2'
+      - '--max-instances'
+      - '10'
+      - '--timeout'
+      - '300'
+      - '--set-env-vars'
+      - 'ENVIRONMENT=production'
+      - '--set-secrets'
+      - 'MONGODB_URL=mongodb-url:latest,SECRET_KEY=api-secret-key:latest'
+    waitFor: ['push-backend']
+
+# Images to be pushed to Container Registry
+images:
+  - 'gcr.io/$PROJECT_ID/bezier-designer-frontend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/bezier-designer-frontend:latest'
+  - 'gcr.io/$PROJECT_ID/bezier-designer-backend:$COMMIT_SHA'
+  - 'gcr.io/$PROJECT_ID/bezier-designer-backend:latest'
+
+# Build timeout (30 minutes)
+timeout: '1800s'
+
+# Machine type for build
+options:
+  machineType: 'N1_HIGHCPU_8'
+  logging: CLOUD_LOGGING_ONLY

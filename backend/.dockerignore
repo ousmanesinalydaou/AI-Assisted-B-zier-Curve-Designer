@@ -1,0 +1,75 @@
+# Backend .dockerignore for Google Cloud
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+*.egg-info/
+dist/
+build/
+*.egg
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Docker
+Dockerfile.dev
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+docs/
+README.md
+*.md
+
+# Environment files (will be provided at runtime)
+.env.local
+.env.development
+.env.test
+
+# Testing
+tests/
+pytest.ini
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+
+# ML Training artifacts (if not needed in production)
+ml_training/*.pt
+ml_training/*.pth
+ml_training/logs/
+ml_training/runs/
+
+# Jupyter notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# Logs
+*.log
+logs/
+
+# Misc
+.DS_Store
+Thumbs.db

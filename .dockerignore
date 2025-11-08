@@ -1,0 +1,60 @@
+# Frontend .dockerignore for Google Cloud
+
+# Node modules
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build output
+dist/
+dist-ssr/
+*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Docker
+Dockerfile.dev
+docker-compose*.yml
+.dockerignore
+
+# Documentation
+docs/
+README.md
+CHANGELOG.md
+*.md
+
+# Environment files (add specific ones if needed)
+.env.local
+.env.*.local
+
+# Testing
+coverage/
+*.spec.ts
+*.test.ts
+*.spec.tsx
+*.test.tsx
+tests/
+__tests__/
+
+# Backend
+backend/
+
+# Misc
+.DS_Store
+Thumbs.db
