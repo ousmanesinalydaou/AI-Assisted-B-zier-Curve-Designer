@@ -225,7 +225,7 @@ if __name__ == "__main__":
     parser.add_argument("--batch-size", type=int, default=64, help="Batch size")
     parser.add_argument("--epochs", type=int, default=100, help="Number of epochs")
     parser.add_argument("--lr", type=float, default=0.001, help="Learning rate")
-    parser.add_argument("--output", type=str, default="../models/control_point_predictor.pth", help="Output path")
+    parser.add_argument("--output", type=str, default="./models/control_point_predictor.pth", help="Output path")
     
     args = parser.parse_args()
     

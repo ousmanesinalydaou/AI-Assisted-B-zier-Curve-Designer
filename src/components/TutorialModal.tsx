@@ -1,6 +1,7 @@
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import React, { useState } from 'react';
-import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useAppStore } from '../store/useAppStore';
+import { DraggablePanel } from './DraggablePanel';
 
 interface TutorialModalProps {
   isOpen: boolean;
@@ -96,11 +97,14 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({ isOpen, onClose })
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className={`w-full max-w-lg mx-4 p-6 rounded-xl shadow-xl ${
-        theme === 'dark' 
-          ? 'bg-gray-800 border-gray-700 text-white' 
-          : 'bg-white border-gray-200 text-gray-900'
-      } border`}>
+      <DraggablePanel
+        className={`w-full max-w-lg mx-4 p-6 rounded-xl shadow-xl ${
+          theme === 'dark' 
+            ? 'bg-gray-800 border-gray-700 text-white' 
+            : 'bg-white border-gray-200 text-gray-900'
+        } border`}
+        initialPosition={{ x: 0, y: 0 }}
+      >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">{steps[currentStep].title}</h2>
           <button
@@ -169,7 +173,7 @@ export const TutorialModal: React.FC<TutorialModalProps> = ({ isOpen, onClose })
             </button>
           )}
         </div>
-      </div>
+      </DraggablePanel>
     </div>
   );
 };

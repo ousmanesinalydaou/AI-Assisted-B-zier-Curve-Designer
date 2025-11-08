@@ -1,4 +1,4 @@
-import { Point2D, CubicBezier, FittingOptions, FittingResult } from '../types';
+import { CubicBezier, FittingOptions, FittingResult, Point2D } from '../types';
 import { distance } from '../utils/helpers';
 
 /**
@@ -328,6 +328,24 @@ export class CurveFitter {
       x: 6 * (ti * curve.p0.x - 2 * ti * curve.p1.x + ti * curve.p2.x + t * curve.p1.x - 2 * t * curve.p2.x + t * curve.p3.x),
       y: 6 * (ti * curve.p0.y - 2 * ti * curve.p1.y + ti * curve.p2.y + t * curve.p1.y - 2 * t * curve.p2.y + t * curve.p3.y),
     };
+  }
+
+  /**
+   * Calculate curvature at parameter t
+   */
+  public calculateCurvature(curve: CubicBezier, t: number): number {
+    const firstDerivative = this.evaluateBezierDerivative(curve, t);
+    const secondDerivative = this.evaluateBezierSecondDerivative(curve, t);
+    
+    const dx = firstDerivative.x;
+    const dy = firstDerivative.y;
+    const ddx = secondDerivative.x;
+    const ddy = secondDerivative.y;
+    
+    const numerator = Math.abs(dx * ddy - dy * ddx);
+    const denominator = Math.pow(dx * dx + dy * dy, 1.5);
+    
+    return denominator > 1e-10 ? numerator / denominator : 0;
   }
 }
 

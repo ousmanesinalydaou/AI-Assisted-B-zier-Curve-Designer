@@ -53,6 +53,14 @@ export interface AppState {
   showControlPoints: boolean;
   showCurvature: boolean;
   showGrid: boolean;
+  showAIPanel: boolean;
+  showSnapToGrid: boolean;
+  showMeasurements: boolean;
+  selectMode: boolean;
+  
+  // History
+  history: StrokeData[][];
+  historyIndex: number;
   
   // Settings
   fittingOptions: FittingOptions;

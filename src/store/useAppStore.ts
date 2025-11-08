@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AppState, Point2D, StrokeData, FittingOptions } from '../types';
+import { AppState, FittingOptions, Point2D, StrokeData } from '../types';
 import { generateId } from '../utils/helpers';
 
 interface AppActions {
@@ -16,7 +16,13 @@ interface AppActions {
   
   // Editing actions
   updateControlPoint: (strokeId: string, curveIndex: number, pointIndex: number, newPoint: Point2D) => void;
+  updateStroke: (strokeId: string, updates: Partial<StrokeData>) => void;
   deleteStroke: (strokeId: string) => void;
+  duplicateStroke: (strokeId: string) => void;
+  
+  // History actions
+  undo: () => void;
+  redo: () => void;
   
   // Settings actions
   updateFittingOptions: (options: Partial<FittingOptions>) => void;
@@ -24,6 +30,10 @@ interface AppActions {
   toggleControlPoints: () => void;
   toggleCurvature: () => void;
   toggleGrid: () => void;
+  toggleAIPanel: () => void;
+  toggleSnapToGrid: () => void;
+  toggleMeasurements: () => void;
+  toggleSelectMode: () => void;
   
   // Persistence actions
   saveProject: () => string;
@@ -50,6 +60,12 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   showControlPoints: true,
   showCurvature: false,
   showGrid: false,
+  showAIPanel: false,
+  showSnapToGrid: false,
+  showMeasurements: false,
+  selectMode: false,
+  history: [],
+  historyIndex: -1,
   fittingOptions: defaultFittingOptions,
   renderOptions: {
     strokeWidth: 2,
@@ -139,6 +155,17 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     set({ strokes });
   },
 
+  updateStroke: (strokeId: string, updates: Partial<StrokeData>) => {
+    const state = get();
+    const strokes = state.strokes.map(stroke => {
+      if (stroke.id === strokeId) {
+        return { ...stroke, ...updates };
+      }
+      return stroke;
+    });
+    set({ strokes });
+  },
+
   deleteStroke: (strokeId: string) => {
     const state = get();
     set({
@@ -146,6 +173,52 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       selectedStroke: state.selectedStroke === strokeId ? null : state.selectedStroke,
       selectedControlPoint: state.selectedControlPoint?.strokeId === strokeId ? null : state.selectedControlPoint,
     });
+  },
+
+  duplicateStroke: (strokeId: string) => {
+    const state = get();
+    const strokeToDuplicate = state.strokes.find(s => s.id === strokeId);
+    if (strokeToDuplicate) {
+      const duplicatedStroke: StrokeData = {
+        ...strokeToDuplicate,
+        id: generateId(),
+        timestamp: Date.now(),
+        // Offset the duplicate slightly so it's visible
+        points: strokeToDuplicate.points.map(p => ({ x: p.x + 20, y: p.y + 20 })),
+        fittedCurves: strokeToDuplicate.fittedCurves.map(curve => ({
+          p0: { x: curve.p0.x + 20, y: curve.p0.y + 20 },
+          p1: { x: curve.p1.x + 20, y: curve.p1.y + 20 },
+          p2: { x: curve.p2.x + 20, y: curve.p2.y + 20 },
+          p3: { x: curve.p3.x + 20, y: curve.p3.y + 20 },
+        })),
+      };
+      set({
+        strokes: [...state.strokes, duplicatedStroke],
+        selectedStroke: duplicatedStroke.id,
+      });
+    }
+  },
+
+  undo: () => {
+    const state = get();
+    if (state.historyIndex > 0) {
+      const newIndex = state.historyIndex - 1;
+      set({
+        strokes: state.history[newIndex],
+        historyIndex: newIndex,
+      });
+    }
+  },
+
+  redo: () => {
+    const state = get();
+    if (state.historyIndex < state.history.length - 1) {
+      const newIndex = state.historyIndex + 1;
+      set({
+        strokes: state.history[newIndex],
+        historyIndex: newIndex,
+      });
+    }
   },
 
   updateFittingOptions: (options: Partial<FittingOptions>) => {
@@ -171,6 +244,26 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   toggleGrid: () => {
     const state = get();
     set({ showGrid: !state.showGrid });
+  },
+
+  toggleAIPanel: () => {
+    const state = get();
+    set({ showAIPanel: !state.showAIPanel });
+  },
+
+  toggleSnapToGrid: () => {
+    const state = get();
+    set({ showSnapToGrid: !state.showSnapToGrid });
+  },
+
+  toggleMeasurements: () => {
+    const state = get();
+    set({ showMeasurements: !state.showMeasurements });
+  },
+
+  toggleSelectMode: () => {
+    const state = get();
+    set({ selectMode: !state.selectMode });
   },
 
   saveProject: () => {
@@ -201,7 +294,6 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
 
   exportSVG: () => {
     // Implementation for SVG export
-    const state = get();
     return '<!-- SVG export functionality to be implemented -->';
   },
 

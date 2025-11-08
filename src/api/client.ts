@@ -301,6 +301,28 @@ export class APIClient {
   }
 
   /**
+   * Check ML model availability
+   */
+  async checkMLStatus(): Promise<{ available: boolean; model_loaded: boolean; model_available?: boolean }> {
+    const response = await fetch(`${this.baseUrl}/ml/status`, {
+      method: 'GET',
+      signal: AbortSignal.timeout(5000),
+    });
+
+    if (!response.ok) {
+      return { available: false, model_loaded: false, model_available: false };
+    }
+
+    const data = await response.json();
+    // Support both old and new API response formats
+    return { 
+      available: data.model_available || data.available || false, 
+      model_loaded: data.model_loaded || false,
+      model_available: data.model_available || data.available || false
+    };
+  }
+
+  /**
    * Check backend health status
    */
   async healthCheck(): Promise<any> {
