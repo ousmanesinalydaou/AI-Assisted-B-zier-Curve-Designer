@@ -14,8 +14,8 @@
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd bezier-curve-designer
+git clone https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer.git
+cd AI-Assisted-B-zier-Curve-Designer
 
 # Install dependencies
 npm install

@@ -3,8 +3,11 @@
 [![WebGL](https://img.shields.io/badge/WebGL-2.0-blue.svg)](https://www.khronos.org/webgl/)
 [![Three.js](https://img.shields.io/badge/Three.js-WebGL-green.svg)](https://threejs.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Live Demo](https://img.shields.io/badge/demo-live-success.svg)](https://bezier-designer.unideb.app)
 
 A production-ready web application for interactive Bézier curve design with advanced mathematical curve fitting, real-time WebGL rendering, and AI-powered curvature analysis.
+
+**🌐 Live Demo**: [https://bezier-designer.unideb.app](https://bezier-designer.unideb.app)
 
 ## 🎯 Features
 
@@ -40,8 +43,8 @@ A production-ready web application for interactive Bézier curve design with adv
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd bezier-curve-designer
+git clone https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer.git
+cd AI-Assisted-B-zier-Curve-Designer
 
 # Install dependencies
 npm install
@@ -203,5 +206,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [mattdesl/adaptive-bezier-curve](https://github.com/mattdesl/adaptive-bezier-curve) - Adaptive tessellation
 
 ---
+
+**Developed by**: OUSMANE DAOU  
+**Academic Supervisor**: Kunkli Roland Imre  
+**Institution**: University of Debrecen, Faculty of Informatics  
+**Course**: Geometric Modeling (MSc Computer Science)  
+**GitHub**: [https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer)
 
 *Built with ❤️ using React, TypeScript, Three.js, and advanced computational geometry*
