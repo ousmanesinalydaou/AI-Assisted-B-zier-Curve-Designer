@@ -23,6 +23,7 @@ interface AppActions {
   // History actions
   undo: () => void;
   redo: () => void;
+  saveToHistory: () => void;
   
   // Settings actions
   updateFittingOptions: (options: Partial<FittingOptions>) => void;
@@ -96,11 +97,19 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
         id: generateId(),
       };
       
+      const newStrokes = [...state.strokes, strokeData];
+      
+      // Save to history
+      const newHistory = state.history.slice(0, state.historyIndex + 1);
+      newHistory.push(JSON.parse(JSON.stringify(newStrokes))); // Deep copy
+      
       set({
         isDrawing: false,
         currentStroke: [],
-        strokes: [...state.strokes, strokeData],
+        strokes: newStrokes,
         selectedStroke: strokeData.id,
+        history: newHistory,
+        historyIndex: newHistory.length - 1,
       });
     } else {
       set({ isDrawing: false, currentStroke: [] });
@@ -108,12 +117,21 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   },
 
   clearCanvas: () => {
+    const state = get();
+    const newStrokes: StrokeData[] = [];
+    
+    // Save to history
+    const newHistory = state.history.slice(0, state.historyIndex + 1);
+    newHistory.push(JSON.parse(JSON.stringify(newStrokes))); // Deep copy
+    
     set({
-      strokes: [],
+      strokes: newStrokes,
       currentStroke: [],
       isDrawing: false,
       selectedStroke: null,
       selectedControlPoint: null,
+      history: newHistory,
+      historyIndex: newHistory.length - 1,
     });
   },
 
@@ -152,7 +170,15 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       return stroke;
     });
     
-    set({ strokes });
+    // Save to history
+    const newHistory = state.history.slice(0, state.historyIndex + 1);
+    newHistory.push(JSON.parse(JSON.stringify(strokes))); // Deep copy
+    
+    set({ 
+      strokes,
+      history: newHistory,
+      historyIndex: newHistory.length - 1,
+    });
   },
 
   updateStroke: (strokeId: string, updates: Partial<StrokeData>) => {
@@ -163,15 +189,32 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       }
       return stroke;
     });
-    set({ strokes });
+    
+    // Save to history
+    const newHistory = state.history.slice(0, state.historyIndex + 1);
+    newHistory.push(JSON.parse(JSON.stringify(strokes))); // Deep copy
+    
+    set({ 
+      strokes,
+      history: newHistory,
+      historyIndex: newHistory.length - 1,
+    });
   },
 
   deleteStroke: (strokeId: string) => {
     const state = get();
+    const strokes = state.strokes.filter(s => s.id !== strokeId);
+    
+    // Save to history
+    const newHistory = state.history.slice(0, state.historyIndex + 1);
+    newHistory.push(JSON.parse(JSON.stringify(strokes))); // Deep copy
+    
     set({
-      strokes: state.strokes.filter(s => s.id !== strokeId),
+      strokes,
       selectedStroke: state.selectedStroke === strokeId ? null : state.selectedStroke,
       selectedControlPoint: state.selectedControlPoint?.strokeId === strokeId ? null : state.selectedControlPoint,
+      history: newHistory,
+      historyIndex: newHistory.length - 1,
     });
   },
 
@@ -192,11 +235,30 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
           p3: { x: curve.p3.x + 20, y: curve.p3.y + 20 },
         })),
       };
+      
+      const strokes = [...state.strokes, duplicatedStroke];
+      
+      // Save to history
+      const newHistory = state.history.slice(0, state.historyIndex + 1);
+      newHistory.push(JSON.parse(JSON.stringify(strokes))); // Deep copy
+      
       set({
-        strokes: [...state.strokes, duplicatedStroke],
+        strokes,
         selectedStroke: duplicatedStroke.id,
+        history: newHistory,
+        historyIndex: newHistory.length - 1,
       });
     }
+  },
+
+  saveToHistory: () => {
+    const state = get();
+    const newHistory = state.history.slice(0, state.historyIndex + 1);
+    newHistory.push(JSON.parse(JSON.stringify(state.strokes))); // Deep copy
+    set({
+      history: newHistory,
+      historyIndex: newHistory.length - 1,
+    });
   },
 
   undo: () => {
