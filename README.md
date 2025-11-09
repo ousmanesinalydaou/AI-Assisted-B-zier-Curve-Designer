@@ -4,8 +4,11 @@
 [![Three.js](https://img.shields.io/badge/Three.js-WebGL-green.svg)](https://threejs.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![CI/CD](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/actions)
+[![Live Demo](https://img.shields.io/badge/demo-live-success.svg)](https://bezier-designer.unideb.app)
 
 A production-ready web application for interactive Bézier curve design featuring advanced mathematical curve fitting, real-time WebGL rendering, and AI-powered curvature analysis.
+
+**🌐 Live Demo**: [https://bezier-designer.unideb.app](https://bezier-designer.unideb.app)
 
 ![Bézier Curve Designer Demo](https://via.placeholder.com/800x400/2563eb/ffffff?text=Demo+Video+Coming+Soon)
 
@@ -41,7 +44,7 @@ A production-ready web application for interactive Bézier curve design featurin
 ## 🚀 Quick Start
 
 ### Try Online (5 seconds)
-Visit **[live-demo-url]** to try the application immediately in your browser.
+Visit **[https://bezier-designer.unideb.app](https://bezier-designer.unideb.app)** to try the application immediately in your browser.
 
 ### Local Development (2 minutes)
 ```bash

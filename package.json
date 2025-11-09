@@ -69,7 +69,7 @@
     "type": "git",
     "url": "https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer"
   },
-  "homepage": "https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer",
+  "homepage": "https://bezier-designer.unideb.app",
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"
