@@ -1,0 +1,22 @@
+steps:
+  # Build the training container
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-f'
+      - 'Dockerfile.training'
+      - '-t'
+      - 'gcr.io/$PROJECT_ID/bezier-ml-trainer:latest'
+      - '.'
+    timeout: 600s
+
+  # Push the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'gcr.io/$PROJECT_ID/bezier-ml-trainer:latest'
+
+images:
+  - 'gcr.io/$PROJECT_ID/bezier-ml-trainer:latest'
+
+timeout: 1200s

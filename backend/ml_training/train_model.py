@@ -12,6 +12,8 @@ import numpy as np
 from pathlib import Path
 import argparse
 from tqdm import tqdm
+import subprocess
+import os
 
 # Import model from services
 import sys
@@ -216,6 +218,26 @@ def train_model(
     print(f"Training complete! Best validation loss: {best_val_loss:.6f}")
     print(f"Model saved to: {output_path}")
     print("=" * 60)
+    
+    # Upload to Cloud Storage if running in Google Cloud
+    if os.getenv('K_SERVICE') or os.getenv('CLOUD_RUN_JOB'):
+        try:
+            bucket_name = "unideb-bezier-models"
+            gcs_path = f"gs://{bucket_name}/control_point_predictor.pth"
+            print(f"\n📤 Uploading model to Cloud Storage: {gcs_path}")
+            
+            result = subprocess.run(
+                ["gcloud", "storage", "cp", output_path, gcs_path],
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            print(f"✅ Model uploaded successfully to {gcs_path}")
+        except subprocess.CalledProcessError as e:
+            print(f"⚠️ Warning: Failed to upload model to Cloud Storage: {e}")
+            print(f"   Model is still available locally at: {output_path}")
+        except Exception as e:
+            print(f"⚠️ Warning: Unexpected error uploading model: {e}")
 
 
 if __name__ == "__main__":
