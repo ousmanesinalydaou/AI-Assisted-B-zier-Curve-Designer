@@ -9,8 +9,8 @@
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/bezier-curve-designer.git
-cd bezier-curve-designer
+git clone https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer.git
+cd AI-Assisted-B-zier-Curve-Designer
 
 # Start all services
 docker-compose up --build
@@ -154,8 +154,8 @@ npm run build
 ## Getting Help
 
 - **Documentation**: `docs/` directory
-- **Issues**: https://github.com/yourusername/bezier-curve-designer/issues
-- **Discussions**: https://github.com/yourusername/bezier-curve-designer/discussions
+- **Issues**: https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/issues
+- **Discussions**: https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/discussions
 
 ---
 

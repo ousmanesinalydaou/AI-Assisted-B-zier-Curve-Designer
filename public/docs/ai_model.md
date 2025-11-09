@@ -271,5 +271,5 @@ The trained model weights are provided under the same license as the project (MI
 ```
 AI-Assisted Bézier Curve Designer ML Model
 Version 1.0.0
-https://github.com/yourusername/bezier-curve-designer
+https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer
 ```

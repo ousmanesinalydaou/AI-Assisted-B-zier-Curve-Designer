@@ -48,8 +48,8 @@ Instances of unacceptable behavior may be reported to the project maintainers. A
 
 1. **Fork the repository**
    ```bash
-   git clone https://github.com/yourusername/bezier-curve-designer.git
-   cd bezier-curve-designer
+   git clone https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer.git
+   cd AI-Assisted-B-zier-Curve-Designer
    ```
 
 2. **Install frontend dependencies**
@@ -127,7 +127,7 @@ Access:
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/yourusername/bezier-curve-designer/issues)
+1. Check if the bug has already been reported in [Issues](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/issues)
 2. If not, create a new issue with:
    - Clear, descriptive title
    - Steps to reproduce
@@ -137,7 +137,7 @@ Access:
 
 ### Suggesting Features
 
-1. Check [Issues](https://github.com/yourusername/bezier-curve-designer/issues) for existing suggestions
+1. Check [Issues](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/issues) for existing suggestions
 2. Create a new issue with:
    - Clear description of the feature
    - Use cases and benefits
@@ -439,7 +439,7 @@ docs/
 ## Getting Help
 
 - **Discord**: [Join our community](https://discord.gg/...)
-- **GitHub Discussions**: [Ask questions](https://github.com/yourusername/bezier-curve-designer/discussions)
+- **GitHub Discussions**: [Ask questions](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/discussions)
 - **Email**: maintainers@example.com
 
 ---

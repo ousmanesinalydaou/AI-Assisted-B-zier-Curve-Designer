@@ -63,13 +63,13 @@
     "vector-graphics",
     "computational-geometry"
   ],
-  "author": "AI-Assisted Development Team",
+  "author": "OUSMANE DAOU <ousmanesinalydaou@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/bezier-curve-designer"
+    "url": "https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer"
   },
-  "homepage": "https://your-org.github.io/bezier-curve-designer",
+  "homepage": "https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer",
   "engines": {
     "node": ">=18.0.0",
     "npm": ">=8.0.0"

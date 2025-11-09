@@ -3,7 +3,7 @@
 [![WebGL](https://img.shields.io/badge/WebGL-2.0-blue.svg)](https://www.khronos.org/webgl/)
 [![Three.js](https://img.shields.io/badge/Three.js-WebGL-green.svg)](https://threejs.org/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI/CD](https://github.com/your-org/bezier-curve-designer/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/your-org/bezier-curve-designer/actions)
+[![CI/CD](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/actions)
 
 A production-ready web application for interactive Bézier curve design featuring advanced mathematical curve fitting, real-time WebGL rendering, and AI-powered curvature analysis.
 
@@ -46,8 +46,8 @@ Visit **[live-demo-url]** to try the application immediately in your browser.
 ### Local Development (2 minutes)
 ```bash
 # Clone and install
-git clone https://github.com/your-org/bezier-curve-designer.git
-cd bezier-curve-designer
+git clone https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer.git
+cd AI-Assisted-B-zier-Curve-Designer
 npm install
 
 # Start development server
@@ -236,16 +236,22 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 📞 Support
 
 - **Documentation**: Complete guides in the `/docs` directory
-- **Issues**: Report bugs via [GitHub Issues](https://github.com/your-org/bezier-curve-designer/issues)
-- **Discussions**: Join our [GitHub Discussions](https://github.com/your-org/bezier-curve-designer/discussions)
-- **Email**: support@your-domain.com
+- **Issues**: Report bugs via [GitHub Issues](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/issues)
+- **Discussions**: Join our [GitHub Discussions](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/discussions)
 
 ---
 
 <div align="center">
 
-**[🌟 Star this repository](https://github.com/your-org/bezier-curve-designer)** if you find it useful!
+**[🌟 Star this repository](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer)** if you find it useful!
 
 *Built with ❤️ using React, TypeScript, Three.js, and advanced computational geometry*
+
+---
+
+**Developed by**: OUSMANE DAOU  
+**Academic Supervisor**: Kunkli Roland Imre  
+**Institution**: University of Debrecen, Faculty of Informatics  
+**Course**: Geometric Modeling (MSc Computer Science)
 
 </div>

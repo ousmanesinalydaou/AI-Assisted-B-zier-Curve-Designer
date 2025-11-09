@@ -15,8 +15,8 @@
 
 ```bash
 # Clone repository
-git clone https://github.com/yourusername/bezier-curve-designer.git
-cd bezier-curve-designer
+git clone https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer.git
+cd AI-Assisted-B-zier-Curve-Designer
 
 # Start all services
 docker-compose up --build
@@ -74,7 +74,7 @@ docker run -d -p 27017:27017 --name mongodb mongo:7.0
 #### 1. Clone and Configure
 
 ```bash
-git clone https://github.com/yourusername/bezier-curve-designer.git
+git clone https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer.git
 cd bezier-curve-designer
 
 # Copy and edit environment files
@@ -572,4 +572,4 @@ BACKEND_CORS_ORIGINS=https://yourdomain.com
 For deployment issues:
 - Check logs: `docker-compose logs -f`
 - Review documentation: `docs/`
-- Open issue: https://github.com/yourusername/bezier-curve-designer/issues
+- Open issue: https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/issues
