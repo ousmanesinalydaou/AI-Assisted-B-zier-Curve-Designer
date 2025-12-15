@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { AppState, FittingOptions, Point2D, StrokeData } from '../types';
+import { AppState, FittingOptions, Point2D, StrokeData, SurfaceData, SurfaceType } from '../types';
 import { generateId } from '../utils/helpers';
 
 interface AppActions {
@@ -19,6 +19,14 @@ interface AppActions {
   updateStroke: (strokeId: string, updates: Partial<StrokeData>) => void;
   deleteStroke: (strokeId: string) => void;
   duplicateStroke: (strokeId: string) => void;
+  
+  // 3D Surface actions
+  createSurface: (type: SurfaceType, strokeIds: string[], options?: any) => void;
+  deleteSurface: (surfaceId: string) => void;
+  selectSurface: (surfaceId: string | null) => void;
+  setSurfaceMode: (mode: SurfaceType | null) => void;
+  toggle3DView: () => void;
+  toggle3DPanel: () => void;
   
   // History actions
   undo: () => void;
@@ -57,6 +65,14 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
   strokes: [],
   selectedStroke: null,
   selectedControlPoint: null,
+  
+  // 3D Surface state
+  surfaces: [],
+  selectedSurface: null,
+  show3DView: false,
+  show3DPanel: false,
+  surfaceMode: null,
+  
   theme: 'light',
   showControlPoints: true,
   showCurvature: false,
@@ -328,10 +344,55 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
     set({ selectMode: !state.selectMode });
   },
 
+  // 3D Surface actions implementation
+  createSurface: (type: SurfaceType, strokeIds: string[], options: any = {}) => {
+    const state = get();
+    const surfaceData: SurfaceData = {
+      id: generateId(),
+      type,
+      sourceStrokeIds: strokeIds,
+      timestamp: Date.now(),
+      options: {
+        resolution: options.resolution || 32,
+        rotationSteps: options.rotationSteps || 32,
+        axis: options.axis || 'y',
+        radius: options.radius || 5,
+      },
+    };
+    set({ surfaces: [...state.surfaces, surfaceData], selectedSurface: surfaceData.id });
+  },
+
+  deleteSurface: (surfaceId: string) => {
+    const state = get();
+    set({
+      surfaces: state.surfaces.filter(s => s.id !== surfaceId),
+      selectedSurface: state.selectedSurface === surfaceId ? null : state.selectedSurface,
+    });
+  },
+
+  selectSurface: (surfaceId: string | null) => {
+    set({ selectedSurface: surfaceId });
+  },
+
+  setSurfaceMode: (mode: SurfaceType | null) => {
+    set({ surfaceMode: mode });
+  },
+
+  toggle3DView: () => {
+    const state = get();
+    set({ show3DView: !state.show3DView });
+  },
+
+  toggle3DPanel: () => {
+    const state = get();
+    set({ show3DPanel: !state.show3DPanel });
+  },
+
   saveProject: () => {
     const state = get();
     const projectData = {
       strokes: state.strokes,
+      surfaces: state.surfaces,
       fittingOptions: state.fittingOptions,
       renderOptions: state.renderOptions,
       timestamp: Date.now(),
@@ -344,10 +405,12 @@ export const useAppStore = create<AppState & AppActions>((set, get) => ({
       const projectData = JSON.parse(data);
       set({
         strokes: projectData.strokes || [],
+        surfaces: projectData.surfaces || [],
         fittingOptions: { ...defaultFittingOptions, ...projectData.fittingOptions },
         renderOptions: { ...get().renderOptions, ...projectData.renderOptions },
         selectedStroke: null,
         selectedControlPoint: null,
+        selectedSurface: null,
       });
     } catch (error) {
       console.error('Failed to load project:', error);

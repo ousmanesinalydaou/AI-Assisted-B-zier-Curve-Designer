@@ -5,6 +5,8 @@ import { AIPanel } from './components/AIPanel';
 import { ExportModal } from './components/ExportModal';
 import { ProjectBrowser } from './components/ProjectBrowser';
 import { PropertyPanel } from './components/PropertyPanel';
+import { SurfaceControlPanel } from './components/SurfaceControlPanel';
+import { SurfaceViewer3D } from './components/SurfaceViewer3D';
 import { Toolbar } from './components/Toolbar';
 import { TutorialModal } from './components/TutorialModal';
 import { WebGLCanvas } from './components/WebGLCanvas';
@@ -356,6 +358,10 @@ function App() {
         isOpen={showTutorial} 
         onClose={() => setShowTutorial(false)} 
       />
+      
+      {/* 3D Features */}
+      <SurfaceControlPanel />
+      <SurfaceViewer3D />
     </div>
   );
 }

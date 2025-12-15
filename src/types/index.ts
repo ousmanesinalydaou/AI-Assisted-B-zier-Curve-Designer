@@ -40,6 +40,27 @@ export interface CurvatureData {
   tangent: Point2D;
 }
 
+export interface Point3D {
+  x: number;
+  y: number;
+  z: number;
+}
+
+export type SurfaceType = 'revolution' | 'patch' | 'loft' | 'extrusion' | 'tube' | 'vase';
+
+export interface SurfaceData {
+  id: string;
+  type: SurfaceType;
+  sourceStrokeIds: string[]; // Stroke(s) used to generate this surface
+  timestamp: number;
+  options: {
+    resolution: number;
+    rotationSteps?: number;
+    axis?: 'x' | 'y' | 'z';
+    radius?: number;
+  };
+}
+
 export interface AppState {
   // Drawing state
   isDrawing: boolean;
@@ -47,6 +68,13 @@ export interface AppState {
   strokes: StrokeData[];
   selectedStroke: string | null;
   selectedControlPoint: { strokeId: string; curveIndex: number; pointIndex: number } | null;
+  
+  // 3D Surface state
+  surfaces: SurfaceData[];
+  selectedSurface: string | null;
+  show3DView: boolean;
+  show3DPanel: boolean;
+  surfaceMode: SurfaceType | null;
   
   // UI state
   theme: 'light' | 'dark';

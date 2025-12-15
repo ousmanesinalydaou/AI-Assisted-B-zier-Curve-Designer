@@ -15,12 +15,23 @@ A production-ready web application for interactive Bézier curve design with adv
 - **Curvature Analysis**: C¹/C² continuity detection with smoothing suggestions
 - **Multi-Format Export**: SVG, JSON, and PNG export capabilities
 
+### 🌟 NEW: 3D Surface Generation
+- **Surface of Revolution**: Rotate curves around X/Y/Z axes to create vases, bottles, and columns
+- **Bézier Patches**: Bicubic surface patches from 4×4 control point grids
+- **Lofted Surfaces**: Smooth interpolation between multiple cross-section curves
+- **Tube/Pipe Generation**: Circular extrusion along curve paths with adjustable radius
+- **Extrusion Along Path**: Sweep profile curves along path curves
+- **Interactive 3D Viewer**: Real-time camera controls, wireframe mode, auto-rotate, and PNG export
+
 ### Mathematical Algorithms
 - Centripetal parameterization (Farin method)
 - Newton-Raphson optimization for minimal fitting error
 - Adaptive tessellation for WebGL rendering
 - Curvature computation with tangent analysis
 - Douglas-Peucker simplification for stroke preprocessing
+- **Tensor product Bézier surfaces** ✨
+- **Surface of revolution algorithms** ✨
+- **Mesh generation and triangulation** ✨
 
 ### User Experience
 - Touch and mouse support with responsive design
@@ -61,12 +72,21 @@ docker-compose up --build
 
 ## 📖 Documentation
 
+### Core Documentation
 - **[Architecture Guide](./architecture.md)** - System design and component overview
 - **[WebGL Implementation](./webgl_guide.md)** - Rendering pipeline and shader details
 - **[Algorithm Documentation](./algorithms.md)** - Mathematical foundations and pseudocode
-- **[API Reference](./api_reference.md)** - Backend endpoints and data formats
 - **[Developer Guide](./developer_guide.md)** - Setup, build process, and contributing
 - **[User Guide](./user_guide.md)** - How to use the application effectively
+
+### 🌟 NEW: 3D Features
+- **[3D Features Guide](./3d_features_guide.md)** - Complete guide to 3D surface generation
+- **[3D Quick Reference](./3D_QUICK_REFERENCE.md)** - Quick reference for 3D features
+- **[3D Features Summary](./3D_FEATURES_SUMMARY.md)** - Implementation overview and details
+
+### Learning Materials
+- **[Mathematical Concepts Lesson](./mathematical_concepts_lesson.md)** - Comprehensive mathematical tutorial
+- **[Presentation Script & Q&A](./presentation_script_and_qa.md)** - Presentation materials
 
 ## 🏗️ Architecture
 

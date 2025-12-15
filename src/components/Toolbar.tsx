@@ -1,20 +1,21 @@
 import {
-  Activity,
-  Copy,
-  Download,
-  Eye,
-  Grid3x3,
-  Keyboard,
-  Magnet,
-  Moon,
-  MousePointer2,
-  Pencil,
-  Redo2,
-  RotateCcw,
-  Ruler,
-  Sun,
-  Undo2,
-  Upload
+    Activity,
+    Box,
+    Copy,
+    Download,
+    Eye,
+    Grid3x3,
+    Keyboard,
+    Magnet,
+    Moon,
+    MousePointer2,
+    Pencil,
+    Redo2,
+    RotateCcw,
+    Ruler,
+    Sun,
+    Undo2,
+    Upload
 } from 'lucide-react';
 import React, { useState } from 'react';
 import { useAppStore } from '../store/useAppStore';
@@ -33,6 +34,7 @@ export const Toolbar: React.FC = () => {
     showMeasurements,
     selectMode,
     selectedStroke,
+    show3DPanel,
     toggleTheme,
     toggleControlPoints,
     toggleCurvature,
@@ -40,6 +42,7 @@ export const Toolbar: React.FC = () => {
     toggleSnapToGrid,
     toggleMeasurements,
     toggleSelectMode,
+    toggle3DPanel,
     clearCanvas,
     saveProject,
     loadProject,
@@ -195,6 +198,17 @@ export const Toolbar: React.FC = () => {
           onClick={handleLoadProject}
           icon={<Upload size={16} />}
           title="Load project (Ctrl+O)"
+          theme={theme}
+        />
+
+        <Divider theme={theme} />
+
+        {/* 3D Surface Generator */}
+        <ToolbarButton
+          onClick={toggle3DPanel}
+          icon={<Box size={16} />}
+          title="3D Surface Generator (3)"
+          isActive={show3DPanel}
           theme={theme}
         />
 

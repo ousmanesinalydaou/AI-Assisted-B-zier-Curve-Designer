@@ -194,9 +194,9 @@ export const WebGLCanvas: React.FC = () => {
         
         renderBezierCurve(curve, material, stroke.id, isSelected);
 
-        // Render control points if enabled
-        if (showControlPoints && isSelected) {
-          renderControlPoints(stroke.id, curveIndex, curve);
+        // Render control points if enabled (show for all curves when enabled)
+        if (showControlPoints) {
+          renderControlPoints(stroke.id, curveIndex, curve, isSelected);
         }
       });
     });
@@ -215,10 +215,11 @@ export const WebGLCanvas: React.FC = () => {
   ]);
 
   const renderStroke = (points: Point2D[], material: THREE.LineBasicMaterial) => {
-    if (!sceneRef.current || points.length < 2) return;
+    if (!sceneRef.current || !canvasRef.current || points.length < 2) return;
 
+    const canvas = canvasRef.current;
     const geometry = new THREE.BufferGeometry();
-    const positions = points.flatMap(p => [p.x, canvasRef.current!.clientHeight - p.y, 0]);
+    const positions = points.flatMap(p => [p.x, canvas.clientHeight - p.y, 0]);
     
     geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
     const line = new THREE.Line(geometry, material);
@@ -289,7 +290,7 @@ export const WebGLCanvas: React.FC = () => {
     }
   };
 
-  const renderControlPoints = (strokeId: string, curveIndex: number, curve: CubicBezier) => {
+  const renderControlPoints = (strokeId: string, curveIndex: number, curve: CubicBezier, isSelected: boolean = false) => {
     if (!sceneRef.current) return;
 
     const canvas = canvasRef.current!;
