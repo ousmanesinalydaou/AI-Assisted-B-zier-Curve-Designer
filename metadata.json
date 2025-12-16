@@ -1,0 +1,5 @@
+{
+  "name": "CAGD Curve Approximation Visualizer",
+  "description": "Interactive visualization of Least Squares Approximation for curve fitting, comparing Uniform vs. Chord Length parameterization methods.",
+  "requestFramePermissions": []
+}

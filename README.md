@@ -1,260 +1,332 @@
-# AI-Assisted Bézier Curve Designer
+# CAGD Curve Approximation Visualizer
 
-[![WebGL](https://img.shields.io/badge/WebGL-2.0-blue.svg)](https://www.khronos.org/webgl/)
-[![Three.js](https://img.shields.io/badge/Three.js-WebGL-green.svg)](https://threejs.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![CI/CD](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/workflows/CI%2FCD%20Pipeline/badge.svg)](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/actions)
-[![Live Demo](https://img.shields.io/badge/demo-live-success.svg)](https://bezier-designer.unideb.app)
+**Interactive Web Application for Bézier Curve Fitting using Least Squares Approximation**
 
-A production-ready web application for interactive Bézier curve design featuring advanced mathematical curve fitting, real-time WebGL rendering, and AI-powered curvature analysis.
+*MSc Computer Science - Geometric Modeling Project*  
+*Technical University - Hungary, December 2025*
 
-**🌐 Live Demo**: [https://bezier-designer.unideb.app](https://bezier-designer.unideb.app)
+---
 
-![Bézier Curve Designer Demo](https://via.placeholder.com/800x400/2563eb/ffffff?text=Demo+Video+Coming+Soon)
+## Table of Contents
 
-## ✨ Features
+1. [Project Overview](#project-overview)
+2. [Mathematical Foundations](#mathematical-foundations)
+3. [Implementation Details](#implementation-details)
+4. [Features](#features)
+5. [Technical Architecture](#technical-architecture)
+6. [Usage Guide](#usage-guide)
+7. [Installation](#installation)
 
-### 🎨 Interactive Design
-- **Freehand Drawing**: Natural stroke input with mouse and touch support
-- **Real-time Fitting**: Instant cubic Bézier curve generation with automatic optimization
-- **Interactive Control Points**: Edit curves by dragging any of the 4 control points (P₀, P₁, P₂, P₃)
-- **Visual Feedback**: Color-coded control points (green endpoints, blue control points) with real-time updates
-- **Easy Selection**: 30-pixel hit area for effortless control point selection and manipulation
-- **Select Mode**: Toggle between drawing and editing modes with keyboard shortcuts
-- **Multi-curve Support**: Create and edit complex compositions with multiple curves
+---
 
-### 🧮 Advanced Mathematics
-- **Iterative Least-Squares**: Newton-Raphson optimization for minimal error
-- **Centripetal Parameterization**: Robust fitting for hand-drawn curves
-- **Curvature Analysis**: Real-time κ(t) computation with C¹/C² continuity detection
-- **Adaptive Tessellation**: GPU-optimized curve rendering with quality preservation
+## Project Overview
 
-### ⚡ High Performance
-- **WebGL Acceleration**: Hardware-accelerated rendering with Three.js
-- **60 FPS Interaction**: Smooth real-time manipulation of complex curves
-- **Memory Efficient**: Optimized for 1000+ simultaneous curves
-- **Progressive Enhancement**: Graceful fallback for older browsers
+This project implements an interactive web-based visualizer for **curve approximation** using **Bézier curves** and **least squares optimization**. The application allows users to interactively place data points on a canvas and observe how different parameterization methods affect the quality of curve fitting.
 
-### 🛠️ Professional Tools
-- **Multiple Export Formats**: SVG, JSON, PNG with full metadata
-- **Project Management**: Save/load complete projects with all settings
-- **Accessibility**: Full keyboard navigation and screen reader support
-- **Responsive Design**: Works on desktop, tablet, and mobile devices
+### Key Objectives
 
-## 🚀 Quick Start
+- Demonstrate practical application of CAGD (Computer-Aided Geometric Design) concepts
+- Implement least squares approximation for Bézier curves
+- Compare different parameterization strategies
+- Visualize fitting errors and residuals
+- Provide an educational tool for understanding curve approximation
 
-### Try Online (5 seconds)
-Visit **[https://bezier-designer.unideb.app](https://bezier-designer.unideb.app)** to try the application immediately in your browser.
+---
 
-### Local Development (2 minutes)
-```bash
-# Clone and install
-git clone https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer.git
-cd AI-Assisted-B-zier-Curve-Designer
-npm install
+## Mathematical Foundations
 
-# Start development server
-npm run dev
-# Opens at http://localhost:5173
+### 1. Bézier Curves
+
+A **Bézier curve** of degree $n$ is defined by $n+1$ control points $\mathbf{b}_0, \mathbf{b}_1, \ldots, \mathbf{b}_n$ and is expressed as:
+
+$$\mathbf{C}(t) = \sum_{i=0}^{n} B_i^n(t) \mathbf{b}_i, \quad t \in [0,1]$$
+
+where $B_i^n(t)$ are the **Bernstein basis polynomials**:
+
+$$B_i^n(t) = \binom{n}{i} t^i (1-t)^{n-i}$$
+
+with $\binom{n}{i}$ being the binomial coefficient:
+
+$$\binom{n}{i} = \frac{n!}{i!(n-i)!}$$
+
+### 2. Curve Approximation Problem
+
+Given a set of $L+1$ data points $\mathbf{p}_0, \mathbf{p}_1, \ldots, \mathbf{p}_L$, we want to find the control points $\mathbf{b}_0, \mathbf{b}_1, \ldots, \mathbf{b}_n$ of a Bézier curve of degree $n$ (where typically $n < L$) that **best approximates** these points in the least squares sense.
+
+#### Objective Function
+
+Minimize the sum of squared distances:
+
+$$E = \sum_{i=0}^{L} \|\mathbf{p}_i - \mathbf{C}(t_i)\|^2$$
+
+where $t_i$ are parameter values assigned to each data point.
+
+### 3. Parameterization Methods
+
+The choice of parameter values $t_i$ significantly affects the approximation quality. Two methods are implemented:
+
+#### a) Uniform Parameterization
+
+Parameters are distributed uniformly:
+
+$$t_i = \frac{i}{L}, \quad i = 0, 1, \ldots, L$$
+
+- **Advantages**: Simple, computationally efficient
+- **Disadvantages**: Ignores the spatial distribution of points, may produce poor results for unevenly spaced data
+
+#### b) Chord Length Parameterization
+
+Parameters are proportional to the cumulative chord lengths:
+
+$$d_i = \|\mathbf{p}_i - \mathbf{p}_{i-1}\|$$
+
+$$t_0 = 0, \quad t_i = t_{i-1} + d_i$$
+
+Then normalized:
+
+$$t_i \leftarrow \frac{t_i}{\sum_{j=1}^{L} d_j}$$
+
+- **Advantages**: Better accounts for point spacing, generally produces superior results
+- **Disadvantages**: Slightly more computational overhead
+
+### 4. Least Squares Solution
+
+Substituting the Bézier curve equation into the objective function:
+
+$$\mathbf{C}(t_i) = \sum_{j=0}^{n} B_j^n(t_i) \mathbf{b}_j$$
+
+The problem becomes:
+
+$$\min_{\mathbf{b}_0, \ldots, \mathbf{b}_n} \sum_{i=0}^{L} \left\|\mathbf{p}_i - \sum_{j=0}^{n} B_j^n(t_i) \mathbf{b}_j\right\|^2$$
+
+This is a **linear least squares problem** that can be expressed in matrix form:
+
+$$\mathbf{M} \mathbf{B} = \mathbf{P}$$
+
+where:
+- $\mathbf{M}$ is an $(L+1) \times (n+1)$ matrix with entries $M_{ij} = B_j^n(t_i)$
+- $\mathbf{B}$ is an $(n+1) \times 2$ matrix of unknown control points
+- $\mathbf{P}$ is an $(L+1) \times 2$ matrix of data points
+
+#### Normal Equations
+
+The least squares solution is obtained by solving the **normal equations**:
+
+$$\mathbf{M}^T \mathbf{M} \mathbf{B} = \mathbf{M}^T \mathbf{P}$$
+
+Let $\mathbf{A} = \mathbf{M}^T \mathbf{M}$ (an $(n+1) \times (n+1)$ symmetric positive definite matrix) and $\mathbf{Q} = \mathbf{M}^T \mathbf{P}$, then:
+
+$$\mathbf{A} \mathbf{B} = \mathbf{Q}$$
+
+This system is solved using **Gaussian elimination with partial pivoting**.
+
+### 5. Error Metric
+
+The **approximation error** is computed as the sum of squared residuals:
+
+$$E = \sum_{i=0}^{L} \|\mathbf{p}_i - \mathbf{C}(t_i)\|^2$$
+
+This provides a quantitative measure of fitting quality, displayed in the application interface.
+
+### 6. Residuals Visualization
+
+For each data point $\mathbf{p}_i$, a **residual vector** connects the point to its corresponding position on the fitted curve $\mathbf{C}(t_i)$:
+
+$$\mathbf{r}_i = \mathbf{p}_i - \mathbf{C}(t_i)$$
+
+These are visualized as line segments to show local fitting errors.
+
+---
+
+## Implementation Details
+
+### Core Algorithms
+
+#### 1. Bernstein Basis Function Evaluation
+```typescript
+B_i^n(t) = C(n,i) * t^i * (1-t)^(n-i)
 ```
+Implemented in `mathUtils.ts::bernstein()`
 
-### Docker Deployment (1 minute)
-```bash
-# Run with Docker Compose
-docker-compose up --build
-# Available at http://localhost:3000
+#### 2. Bézier Curve Evaluation
+Uses the explicit summation formula for efficiency:
+```typescript
+C(t) = Σ B_i^n(t) * b_i
 ```
+Implemented in `cagdUtils.ts::evaluateBezier()`
 
-## 📖 Documentation
+#### 3. Linear System Solver
+Gaussian elimination with partial pivoting:
+- Forward elimination with row swapping for numerical stability
+- Backward substitution
+- Handles multiple right-hand sides (x and y coordinates simultaneously)
 
-| Document | Description |
-|----------|-------------|
-| **[User Guide](docs/user_guide.md)** | Complete usage instructions and tutorials |
-| **[Developer Guide](docs/developer_guide.md)** | Setup, build process, and contribution guidelines |
-| **[Architecture Guide](docs/architecture.md)** | System design and component overview |
-| **[Algorithm Documentation](docs/algorithms.md)** | Mathematical foundations and implementation details |
-| **[WebGL Implementation](docs/webgl_guide.md)** | Rendering pipeline and performance optimization |
+Implemented in `mathUtils.ts::solveLinearSystem()`
 
-## 🎯 Use Cases
+#### 4. Matrix Operations
+- **Transpose**: $\mathbf{A}^T$
+- **Multiplication**: $\mathbf{A} \times \mathbf{B}$
 
-### Design and Creative
-- **Logo Design**: Create smooth, scalable brand elements
-- **Icon Creation**: Design pixel-perfect interface graphics  
-- **Illustration**: Professional vector artwork with precise curves
-- **Typography**: Custom letterform and glyph design
+Essential for forming and solving normal equations.
 
-### Technical and Engineering
-- **CAD Applications**: Precise curve definition for technical drawings
-- **Animation**: Smooth motion paths and trajectory planning
-- **Data Visualization**: Custom curve fitting for scientific plots
-- **Game Development**: Path planning and procedural generation
+### Numerical Considerations
 
-### Educational and Research
-- **Mathematics Education**: Interactive exploration of Bézier mathematics
-- **Computer Graphics**: Learn curve fitting and rendering algorithms
-- **Research**: Experiment with parameterization and optimization methods
-- **Algorithm Development**: Testbed for new curve fitting techniques
+1. **Singularity Check**: Matrix entries below $10^{-10}$ are treated as singular
+2. **Degree Limitation**: Automatically clamped to avoid ill-conditioned systems
+3. **Fallback**: Uniform parameterization used if all points coincide
 
-## 🏗️ Architecture
+---
 
-```mermaid
-graph TB
-    subgraph "Frontend (React + TypeScript)"
-        A[WebGL Canvas] --> B[Three.js Renderer]
-        C[Curve Fitting] --> D[Newton-Raphson Optimization]
-        E[State Management] --> F[Zustand Store]
-    end
-    
-    subgraph "Algorithms"
-        G[Centripetal Parameterization]
-        H[Iterative Least-Squares]
-        I[Curvature Analysis]
-    end
-    
-    subgraph "WebGL Pipeline"
-        J[Adaptive Tessellation]
-        K[Buffer Management]
-        L[Real-time Rendering]
-    end
-    
-    A --> G
-    C --> H
-    B --> J
-    H --> I
-    J --> K
-    K --> L
-```
+## Features
 
-## 🧪 Algorithm Details
+### Interactive Capabilities
 
-### Curve Fitting Pipeline
+- ✅ **Click-to-Place Points**: Interactive point placement on canvas
+- ✅ **Point Manipulation**: Drag existing points to modify the dataset
+- ✅ **Point Deletion**: Right-click to remove points
+- ✅ **Real-time Updates**: Curves update instantly as parameters change
 
-1. **Input Processing**
-   - High-frequency stroke capture (up to 120 Hz)
-   - Adaptive resampling with arc-length parameterization
-   - Savitzky-Golay smoothing for noise reduction
+### Visualization Options
 
-2. **Mathematical Optimization**
-   - Centripetal parameterization for numerical stability
-   - Iterative least-squares with regularization
-   - Newton-Raphson reparameterization for convergence
+- 📊 **Multiple Parameterization Methods**: Compare uniform vs chord length simultaneously
+- 📈 **Residual Display**: Toggle visualization of fitting errors
+- 🔷 **Control Polygon**: Show/hide control point polygons
+- 🎨 **Color-Coded Methods**: Different colors for each parameterization method
 
-3. **Quality Analysis**
-   - RMSE and maximum error computation
-   - Convergence analysis and iteration tracking
-   - Automatic segmentation for complex curves
+### Configuration Controls
 
-### Performance Characteristics
+- **Degree Selection**: Adjust Bézier curve degree (1-10)
+- **Method Toggle**: Enable/disable specific parameterization methods
+- **Error Display**: Real-time error metrics for each method
+- **Preset Shapes**: Load example datasets (wave, spiral, wing)
 
-- **Fitting Speed**: Sub-millisecond for typical strokes (50-200 points)
-- **Rendering Performance**: 60 FPS with 100+ simultaneous curves
-- **Memory Usage**: <100MB for complex projects (1000+ curves)
-- **Accuracy**: Sub-pixel RMSE for smooth input strokes
+### Technical Features
 
-## 🛡️ Browser Support
+- 🚀 **Performance**: Efficient algorithms suitable for real-time interaction
+- 📱 **Responsive Design**: Works on desktop and tablet devices
+- 🎯 **Numerical Stability**: Robust linear algebra with pivoting
+- 🔍 **High-Quality Rendering**: Smooth curve rendering with configurable sampling
 
-| Browser | Version | WebGL 2.0 | Performance |
-|---------|---------|-----------|-------------|
-| **Chrome** | 90+ | ✅ | Excellent |
-| **Firefox** | 88+ | ✅ | Excellent |
-| **Safari** | 14+ | ✅ | Good |
-| **Edge** | 90+ | ✅ | Excellent |
+---
 
-**Mobile Support**: iOS Safari 14+, Chrome Mobile 90+, Firefox Mobile 88+
+## Technical Architecture
 
-## 🔧 Development
+### Technology Stack
 
-### Prerequisites
-- Node.js 18+
-- npm 8+
-- Modern browser with WebGL 2.0
-
-### Scripts
-```bash
-npm run dev          # Development server
-npm run build        # Production build  
-npm run test         # Run test suite
-npm run lint         # Code linting
-npm run typecheck    # TypeScript checking
-```
-
-### Testing
-```bash
-npm run test:unit        # Unit tests
-npm run test:integration # Integration tests
-npm run test:e2e         # End-to-end tests
-npm run test:coverage    # Coverage report
-```
+- **Frontend Framework**: React 19.2.3 with TypeScript
+- **Build Tool**: Vite 6.2.0
+- **Styling**: Tailwind CSS (utility-first CSS framework)
+- **Language**: TypeScript 5.8.2
 
 ### Project Structure
+
 ```
-src/
-├── algorithms/      # Mathematical curve fitting
-├── components/      # React UI components
-├── store/          # Zustand state management
-├── types/          # TypeScript definitions
-└── utils/          # Helper functions
+├── App.tsx                    # Main application component
+├── components/
+│   ├── ControlPanel.tsx       # UI controls and parameter adjustment
+│   └── DrawingCanvas.tsx      # Interactive canvas with rendering
+├── utils/
+│   ├── cagdUtils.ts          # CAGD algorithms (approximation, evaluation)
+│   └── mathUtils.ts          # Linear algebra and numerical methods
+├── types.ts                   # TypeScript type definitions
+├── package.json              # Dependencies and scripts
+├── tsconfig.json             # TypeScript configuration
+└── vite.config.ts            # Build configuration
 ```
 
-## 📊 Performance Benchmarks
+### Module Responsibilities
 
-| Metric | Target | Achieved |
-|--------|--------|----------|
-| **First Paint** | <2s | 1.2s |
-| **Interactive** | <3s | 2.1s |
-| **Frame Rate** | 60 FPS | 60+ FPS |
-| **Memory** | <100MB | 67MB |
-| **Bundle Size** | <1MB | 847KB |
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Workflow
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Make changes and add tests
-4. Run the test suite: `npm test`
-5. Commit changes: `git commit -m 'Add amazing feature'`
-6. Push to branch: `git push origin feature/amazing-feature`
-7. Open a Pull Request
-
-### Code Style
-- ESLint + Prettier for formatting
-- TypeScript strict mode
-- Comprehensive test coverage
-- Documentation for all public APIs
-
-## 📜 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- **Mathematical Foundations**: Schneider (1990), Farin (2002), Piegl & Tiller (1997)
-- **WebGL Rendering**: Three.js community and contributors
-- **Algorithm Optimization**: Inspired by computational geometry research
-- **UI/UX Design**: Modern web design principles and accessibility standards
-
-## 📞 Support
-
-- **Documentation**: Complete guides in the `/docs` directory
-- **Issues**: Report bugs via [GitHub Issues](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/issues)
-- **Discussions**: Join our [GitHub Discussions](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer/discussions)
+| Module | Purpose |
+|--------|---------|
+| `mathUtils.ts` | Linear algebra primitives (matrix ops, Bernstein basis) |
+| `cagdUtils.ts` | Curve approximation, parameterization, evaluation |
+| `DrawingCanvas.tsx` | Canvas rendering, user interaction |
+| `ControlPanel.tsx` | UI controls, parameter management |
+| `App.tsx` | State management, computation orchestration |
 
 ---
 
-<div align="center">
+## Usage Guide
 
-**[🌟 Star this repository](https://github.com/ousmanesinalydaou/AI-Assisted-B-zier-Curve-Designer)** if you find it useful!
+### Basic Workflow
 
-*Built with ❤️ using React, TypeScript, Three.js, and advanced computational geometry*
+1. **Add Points**: Click on the canvas to place data points
+2. **Adjust Degree**: Use the slider to change the Bézier curve degree
+3. **Compare Methods**: Toggle parameterization methods to compare results
+4. **View Residuals**: Enable residual display to see fitting errors
+5. **Inspect Control Points**: Show control polygon to see curve structure
+6. **Load Presets**: Try pre-defined shapes to explore different scenarios
+
+### Understanding the Display
+
+- **Blue Points**: Your input data points
+- **Colored Curves**: Fitted Bézier curves (different colors = different methods)
+- **Hollow Circles**: Control points (when control polygon is enabled)
+- **Dashed Lines**: Control polygon edges
+- **Red/Orange Lines**: Residuals (data point to curve distance)
+
+### Recommended Experiments
+
+1. **Degree Impact**: Start with degree 3, gradually increase to see smoothing effect
+2. **Method Comparison**: Use both methods with unevenly spaced points
+3. **Overfitting**: Set degree close to number of points to observe interpolation
+4. **Noise Handling**: Add clustered points to test approximation vs interpolation
 
 ---
 
-**Developed by**: OUSMANE DAOU  
-**Academic Supervisor**: Kunkli Roland Imre  
-**Institution**: University of Debrecen, Faculty of Informatics  
-**Course**: Geometric Modeling (MSc Computer Science)
+## Installation
 
-</div>
+### Prerequisites
+- **Node.js** (version 16 or higher)
+- **npm** (comes with Node.js)
+
+### Setup Instructions
+
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+2. **Run the development server:**
+   ```bash
+   npm run dev
+   ```
+
+3. **Open in browser:**
+   Navigate to `http://localhost:5173` (or the port shown in terminal)
+
+### Build for Production
+
+```bash
+npm run build
+```
+
+The optimized application will be in the `dist/` folder.
+
+### Preview Production Build
+
+```bash
+npm run preview
+```
+
+---
+
+## Conclusion
+
+This project successfully demonstrates:
+- Practical implementation of fundamental CAGD concepts
+- Least squares curve approximation with Bézier curves
+- Impact of parameterization on fitting quality
+- Real-time interactive visualization of mathematical concepts
+
+The application serves as both an educational tool and a practical demonstration of geometric modeling techniques essential in computer graphics, CAD systems, and scientific visualization.
+
+---
+
+**Technologies**: React · TypeScript · Vite · Tailwind CSS  
+**Mathematical Concepts**: Bézier Curves · Least Squares · Linear Algebra · Parameterization  
+**Author**: MSc Computer Science Student  
+**Date**: December 2025
+
+
+
