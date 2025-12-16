@@ -3,7 +3,7 @@
 **Interactive Web Application for Bézier Curve Fitting using Least Squares Approximation**
 
 *MSc Computer Science - Geometric Modeling Project*  
-*Technical University - Hungary, December 2025*
+*University of Debrecen - Hungary, December 2025*
 
 ---
 
@@ -325,7 +325,7 @@ The application serves as both an educational tool and a practical demonstration
 
 **Technologies**: React · TypeScript · Vite · Tailwind CSS  
 **Mathematical Concepts**: Bézier Curves · Least Squares · Linear Algebra · Parameterization  
-**Author**: MSc Computer Science Student  
+**Author**: Ousmane Daou 
 **Date**: December 2025
 
 
