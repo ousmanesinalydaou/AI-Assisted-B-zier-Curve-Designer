@@ -1,165 +1,184 @@
-import React, { useRef, useState, useEffect } from 'react';
-import { Point, CurveResult, ParameterizationMethod } from '../types';
+import React, { useRef, useEffect, useState } from 'react';
+import { Point3D, Parameterization, Theme } from '../types';
+import { fitCurveLeastSquares, evaluateBSplineCurve, generateKnots } from '../services/mathUtils';
 
 interface DrawingCanvasProps {
-  points: Point[];
-  setPoints: (points: Point[]) => void;
-  results: CurveResult[];
-  showResiduals: boolean;
-  showControlPolygon: boolean;
+  width?: number;
+  height?: number;
+  activeCurveIndex: number;
+  curves: Point3D[][]; 
+  onChange: (newCurves: Point3D[][]) => void;
+  uDegree: number;
+  uControlPoints: number;
+  parameterization: Parameterization;
+  theme: Theme;
 }
 
-const DrawingCanvas: React.FC<DrawingCanvasProps> = ({ 
-  points, 
-  setPoints, 
-  results,
-  showResiduals,
-  showControlPolygon
+const DrawingCanvas: React.FC<DrawingCanvasProps> = ({
+  width = 300,
+  height = 300,
+  activeCurveIndex,
+  curves,
+  onChange,
+  uDegree,
+  uControlPoints,
+  parameterization,
+  theme
 }) => {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
 
-  const getCoordinates = (e: React.MouseEvent | React.TouchEvent) => {
-    if (!svgRef.current) return { x: 0, y: 0 };
-    const rect = svgRef.current.getBoundingClientRect();
-    let clientX, clientY;
-    
-    if ('touches' in e) {
-      clientX = e.touches[0].clientX;
-      clientY = e.touches[0].clientY;
-    } else {
-      clientX = (e as React.MouseEvent).clientX;
-      clientY = (e as React.MouseEvent).clientY;
-    }
-
-    return {
-      x: clientX - rect.left,
-      y: clientY - rect.top
-    };
-  };
-
-  const handleMouseDown = (e: React.MouseEvent | React.TouchEvent, index: number) => {
-    e.stopPropagation(); // Prevent adding a new point
-    setDraggedIndex(index);
-  };
-
-  const handleCanvasClick = (e: React.MouseEvent) => {
-    if (draggedIndex !== null) return;
-    const { x, y } = getCoordinates(e);
-    setPoints([...points, { x, y }]);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent | React.TouchEvent) => {
-    if (draggedIndex !== null) {
-      const { x, y } = getCoordinates(e);
-      const newPoints = [...points];
-      newPoints[draggedIndex] = { x, y };
-      setPoints(newPoints);
-    }
-  };
-
-  const handleMouseUp = () => {
-    setDraggedIndex(null);
-  };
-
-  // Convert points array to SVG path string
-  const pointsToPath = (pts: Point[]) => {
-    if (pts.length === 0) return '';
-    const d = pts.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
-    return d;
-  };
-
+  // Theme Colors
+  const isDark = theme === Theme.DARK;
   const colors = {
-    [ParameterizationMethod.UNIFORM]: '#3B82F6', // Blue
-    [ParameterizationMethod.CHORD_LENGTH]: '#EF4444' // Red
+    grid: isDark ? '#333333' : '#e5e7eb',
+    rawPoints: isDark ? '#fbbf24' : '#d97706', // amber-400 vs amber-600
+    curveActive: isDark ? '#60a5fa' : '#2563eb', // blue-400 vs blue-600
+    curveInactive: isDark ? '#4b5563' : '#9ca3af', // gray-600 vs gray-400
+    controlPoly: isDark ? '#ef4444' : '#dc2626', // red-500 vs red-600
+  };
+
+  const screenToWorld = (sx: number, sy: number) => {
+    const wx = (sx / width) * 10 - 5;
+    const wy = -((sy / height) * 10 - 5);
+    return { x: wx, y: wy, z: 0 };
+  };
+
+  const worldToScreen = (wx: number, wy: number) => {
+    const sx = ((wx + 5) / 10) * width;
+    const sy = ((-wy + 5) / 10) * height;
+    return { x: sx, y: sy };
+  };
+
+  const draw = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    ctx.clearRect(0, 0, width, height);
+    
+    // Grid
+    ctx.strokeStyle = colors.grid;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(width/2, 0); ctx.lineTo(width/2, height);
+    ctx.moveTo(0, height/2); ctx.lineTo(width, height/2);
+    ctx.stroke();
+
+    curves.forEach((curvePoints, idx) => {
+      const isActive = idx === activeCurveIndex;
+      
+      if (curvePoints.length === 0) return;
+
+      if (isActive) {
+        ctx.fillStyle = colors.rawPoints;
+        curvePoints.forEach(p => {
+          const s = worldToScreen(p.x, p.y);
+          ctx.fillRect(s.x - 1.5, s.y - 1.5, 3, 3);
+        });
+      }
+
+      if (curvePoints.length > 1) {
+        try {
+          const controlPoints = fitCurveLeastSquares(curvePoints, uDegree, uControlPoints, parameterization);
+          const safeDegree = Math.min(uDegree, controlPoints.length - 1);
+          const knots = generateKnots(safeDegree, controlPoints.length);
+
+          ctx.strokeStyle = isActive ? colors.curveActive : colors.curveInactive;
+          ctx.lineWidth = isActive ? 2 : 1;
+          ctx.beginPath();
+          const samples = 50;
+          for (let i = 0; i <= samples; i++) {
+            const t = i / samples;
+            const p = evaluateBSplineCurve(t, safeDegree, controlPoints, knots);
+            const s = worldToScreen(p.x, p.y);
+            if (i === 0) ctx.moveTo(s.x, s.y);
+            else ctx.lineTo(s.x, s.y);
+          }
+          ctx.stroke();
+
+          if (isActive) {
+             ctx.strokeStyle = colors.controlPoly;
+             ctx.lineWidth = 1;
+             ctx.setLineDash([3, 3]);
+             ctx.beginPath();
+             controlPoints.forEach((cp, i) => {
+               const s = worldToScreen(cp.x, cp.y);
+               if (i===0) ctx.moveTo(s.x, s.y);
+               else ctx.lineTo(s.x, s.y);
+               ctx.fillStyle = colors.controlPoly;
+               ctx.fillRect(s.x - 2, s.y - 2, 4, 4);
+             });
+             ctx.stroke();
+             ctx.setLineDash([]);
+          }
+
+        } catch (e) {
+          // ignore
+        }
+      }
+    });
+  };
+
+  useEffect(() => {
+    draw();
+  }, [curves, activeCurveIndex, uDegree, uControlPoints, parameterization, theme]);
+
+  const handlePointerDown = (e: React.PointerEvent) => {
+    setIsDrawing(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
+    const rect = canvasRef.current!.getBoundingClientRect();
+    const pt = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+    const newCurves = [...curves];
+    newCurves[activeCurveIndex] = [pt];
+    onChange(newCurves);
+  };
+
+  const handlePointerMove = (e: React.PointerEvent) => {
+    if (!isDrawing) return;
+    const rect = canvasRef.current!.getBoundingClientRect();
+    const pt = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+    const newCurves = [...curves];
+    const currentPts = newCurves[activeCurveIndex];
+    const last = currentPts[currentPts.length - 1];
+    const dist = Math.hypot(pt.x - last.x, pt.y - last.y);
+    if (dist > 0.05) {
+      newCurves[activeCurveIndex] = [...currentPts, pt];
+      onChange(newCurves);
+    }
+  };
+
+  const handlePointerUp = (e: React.PointerEvent) => {
+    setIsDrawing(false);
+    e.currentTarget.releasePointerCapture(e.pointerId);
   };
 
   return (
-    <div className="w-full h-full border border-slate-200 rounded-xl overflow-hidden bg-white shadow-inner relative group">
-      <div className="absolute top-4 left-4 text-xs text-slate-400 pointer-events-none select-none">
-        Click to add points • Drag to move points
+    <div className={`relative border rounded overflow-hidden touch-none transition-colors duration-300 ${
+      isDark 
+        ? 'border-neutral-700 bg-neutral-900/50' 
+        : 'border-slate-300 bg-white/50'
+    }`}>
+      <canvas
+        ref={canvasRef}
+        width={width}
+        height={height}
+        className="cursor-crosshair w-full h-full block"
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+      />
+      <div className={`absolute top-2 left-2 pointer-events-none text-[10px] uppercase tracking-widest font-bold ${
+        isDark ? 'text-neutral-500' : 'text-slate-400'
+      }`}>
+        2D Input
       </div>
-      <svg
-        ref={svgRef}
-        className="w-full h-full touch-none cursor-crosshair"
-        onClick={handleCanvasClick}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchMove={handleMouseMove}
-        onTouchEnd={handleMouseUp}
-      >
-        <defs>
-            <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-                <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f1f5f9" strokeWidth="1"/>
-            </pattern>
-        </defs>
-        <rect width="100%" height="100%" fill="url(#grid)" />
-
-        {/* Render Results */}
-        {results.map((res) => (
-          <g key={res.method} className="opacity-90">
-            {/* Control Polygon (Optional) */}
-            {showControlPolygon && (
-              <path
-                d={pointsToPath(res.controlPoints)}
-                fill="none"
-                stroke={colors[res.method]}
-                strokeWidth="1"
-                strokeDasharray="4 4"
-                opacity="0.4"
-              />
-            )}
-            
-            {/* Control Points (Optional or debug) */}
-            {showControlPolygon && res.controlPoints.map((cp, idx) => (
-               <circle key={`cp-${res.method}-${idx}`} cx={cp.x} cy={cp.y} r="2" fill={colors[res.method]} opacity="0.4" />
-            ))}
-
-            {/* Residuals (Error lines) */}
-            {showResiduals && res.residuals.map((line, idx) => (
-               <line 
-                key={`res-${res.method}-${idx}`}
-                x1={line.start.x} y1={line.start.y}
-                x2={line.end.x} y2={line.end.y}
-                stroke={colors[res.method]}
-                strokeWidth="1"
-                opacity="0.3"
-               />
-            ))}
-
-            {/* The Approximated Curve */}
-            <path
-              d={pointsToPath(res.curvePoints)}
-              fill="none"
-              stroke={colors[res.method]}
-              strokeWidth="3"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </g>
-        ))}
-
-        {/* User Data Points */}
-        {points.map((p, i) => (
-          <g key={i} transform={`translate(${p.x}, ${p.y})`} style={{ cursor: 'grab' }}>
-             <circle
-              r="12"
-              fill="transparent"
-              onMouseDown={(e) => handleMouseDown(e, i)}
-              onTouchStart={(e) => handleMouseDown(e, i)}
-            />
-            <circle
-              r="5"
-              className={`${draggedIndex === i ? 'fill-emerald-500 scale-125' : 'fill-slate-800'} transition-all duration-150`}
-              pointerEvents="none"
-            />
-            <text y="-10" textAnchor="middle" className="text-[10px] fill-slate-400 select-none pointer-events-none font-mono">
-                p{i}
-            </text>
-          </g>
-        ))}
-      </svg>
+      <div className={`absolute bottom-2 right-2 pointer-events-none text-[10px] font-mono ${
+        isDark ? 'text-neutral-600' : 'text-slate-400'
+      }`}>
+        Curve {activeCurveIndex + 1}/{curves.length}
+      </div>
     </div>
   );
 };

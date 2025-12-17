@@ -1,135 +1,207 @@
-import React, { useState, useMemo } from 'react';
-import DrawingCanvas from './components/DrawingCanvas';
-import ControlPanel from './components/ControlPanel';
-import { Point, ParameterizationMethod, CurveResult } from './types';
-import { approximateCurve, generateCurvePoints, calculateResiduals } from './utils/cagdUtils';
+import React, { useState, useMemo, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Viewer3D from './components/Viewer3D';
+import Controls from './components/Controls';
+import RightPanel from './components/RightPanel';
+import { CurveType, GeneratorParams, VisualizationMode, InputMode, Point3D, Parameterization, Theme } from './types';
+import { generateStackedCurves } from './services/dataGenerator';
+import { generateCompositeSurface } from './services/surfaceEngine';
 
 const App: React.FC = () => {
-  const [points, setPoints] = useState<Point[]>([]);
-  const [degree, setDegree] = useState<number>(3);
-  const [selectedMethods, setSelectedMethods] = useState<Set<ParameterizationMethod>>(
-    new Set([ParameterizationMethod.UNIFORM, ParameterizationMethod.CHORD_LENGTH])
-  );
-  const [showResiduals, setShowResiduals] = useState(false);
-  const [showControlPolygon, setShowControlPolygon] = useState(false);
+  // --- STATE ---
+  const [theme, setTheme] = useState<Theme>(Theme.DARK);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  
+  // Sidebar Visibility State
+  const [isLeftPanelOpen, setIsLeftPanelOpen] = useState(true);
+  // Detect desktop vs mobile for initial render to avoid layout shifts
+  const [isDesktop, setIsDesktop] = useState(() => typeof window !== 'undefined' ? window.innerWidth >= 768 : true);
 
-  // Calculate curves whenever inputs change
-  const results: CurveResult[] = useMemo(() => {
-    if (points.length < 2) return [];
+  const [params, setParams] = useState<GeneratorParams>({
+    mode: InputMode.PRESET,
+    curveType: CurveType.SINE_WAVE,
+    parameterization: Parameterization.UNIFORM,
+    numCurves: 6,
+    pointsPerCurve: 30,
+    stackSpacing: 2.0,
+    uDegree: 3,
+    vDegree: 3,
+    uControlPoints: 8,
+    vControlPoints: 4
+  });
 
-    const res: CurveResult[] = [];
-    selectedMethods.forEach(method => {
-      // Degree cannot exceed n-1 for proper fitting in this implementation context, 
-      // or at least we clamp it to avoid singular matrices in basic solvers if points < degree + 1.
-      // For approximation we usually want degree < points.length - 1
-      const effectiveDegree = Math.min(degree, Math.max(1, points.length - 1));
-      
-      const approximation = approximateCurve(points, effectiveDegree, method);
-      if (approximation) {
-        const curvePoints = generateCurvePoints(approximation.controlPoints);
-        const residuals = calculateResiduals(points, approximation.controlPoints, method);
-        res.push({
-          method,
-          controlPoints: approximation.controlPoints,
-          curvePoints,
-          residuals,
-          error: approximation.error
-        });
-      }
-    });
-    return res;
-  }, [points, degree, selectedMethods]);
+  const [visMode, setVisMode] = useState<VisualizationMode>(VisualizationMode.HYBRID);
+  const [drawnCurves, setDrawnCurves] = useState<Point3D[][]>([[]]); 
+  const [activeCurveIndex, setActiveCurveIndex] = useState(0);
 
-  const loadPreset = (type: 'wing' | 'spiral' | 'wave') => {
-      let newPoints: Point[] = [];
-      // Assume a default canvas size for presets relative placement
-      // Ideally we would measure the canvas, but hardcoded offsets work for this demo
-      const cx = 400; 
-      const cy = 300;
-      
-      if (type === 'wave') {
-          for(let i=0; i<12; i++) {
-              newPoints.push({
-                  x: 100 + (i * 60),
-                  y: cy + Math.sin(i * 0.8) * 120
-              });
-          }
-      } else if (type === 'spiral') {
-          for(let i=0; i<20; i++) {
-              const angle = i * 0.5;
-              const r = 10 + i * 15;
-              newPoints.push({
-                  x: cx + Math.cos(angle) * r,
-                  y: cy + Math.sin(angle) * r
-              });
-          }
-      } else if (type === 'wing') {
-           // Airfoil-ish shape
-           for(let i=0; i<=8; i++) {
-               const t = i/8;
-               newPoints.push({ x: 150 + t*500, y: cy - (Math.sin(t*Math.PI)*100) });
-           }
-           for(let i=1; i<8; i++) {
-                const t = i/8;
-                newPoints.push({ x: 650 - t*500, y: cy + (Math.sin(t*Math.PI)*40) });
-           }
-      }
-      setPoints(newPoints);
-  }
+  // --- LOGIC ---
+  
+  // Resize Listener for Responsive Layout Logic
+  useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth >= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
-  const toggleMethod = (m: ParameterizationMethod) => {
-    const newSet = new Set(selectedMethods);
-    if (newSet.has(m)) newSet.delete(m);
-    else newSet.add(m);
-    setSelectedMethods(newSet);
+  const activeInputCurves = useMemo(() => {
+    if (params.mode === InputMode.PRESET) {
+      return generateStackedCurves(
+        params.curveType,
+        params.numCurves,
+        params.pointsPerCurve,
+        params.stackSpacing
+      );
+    } else {
+      const num = drawnCurves.length;
+      return drawnCurves.map((curve, index) => {
+        const z = index * params.stackSpacing - ((num - 1) * params.stackSpacing) / 2;
+        return curve.map(p => ({ x: p.x, y: p.y, z }));
+      });
+    }
+  }, [params, drawnCurves]);
+
+  const surfaceData = useMemo(() => {
+    try {
+      if (activeInputCurves.length < 2) return null;
+      if (activeInputCurves.some(c => c.length < 2)) return null;
+
+      return generateCompositeSurface(
+        activeInputCurves,
+        params.uDegree,
+        params.vDegree,
+        params.uControlPoints,
+        params.vControlPoints,
+        params.parameterization
+      );
+    } catch (e) {
+      return null;
+    }
+  }, [activeInputCurves, params]);
+
+  // --- HANDLERS ---
+  const toggleTheme = () => {
+      setTheme(t => t === Theme.DARK ? Theme.LIGHT : Theme.DARK);
   };
+  
+  const isDark = theme === Theme.DARK;
 
+  // --- RENDER ---
   return (
-    <div className="flex flex-col lg:flex-row h-screen w-screen bg-slate-50 overflow-hidden font-sans">
-      {/* Main Canvas Area */}
-      <div className="flex-1 p-4 h-[60vh] lg:h-full relative order-2 lg:order-1">
-        <DrawingCanvas 
-            points={points} 
-            setPoints={setPoints} 
-            results={results}
-            showResiduals={showResiduals}
-            showControlPolygon={showControlPolygon}
-        />
+    <div className={`${isDark ? 'dark' : ''} h-screen w-screen overflow-hidden transition-colors duration-500`}>
+      <div className="h-full w-full flex flex-col md:flex-row bg-light-bg dark:bg-dark-bg text-gray-900 dark:text-gray-100 font-sans">
         
-        {/* Helper Overlay */}
-        {points.length < 2 && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="bg-white/90 backdrop-blur-sm px-8 py-6 rounded-2xl shadow-xl border border-slate-200 text-slate-500 text-center max-w-sm">
-                    <div className="mb-3 text-blue-500">
-                        <svg className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                        </svg>
-                    </div>
-                    <h2 className="font-bold text-slate-800 text-lg mb-2">Interactive Curve Fitting</h2>
-                    <p className="text-sm leading-relaxed">
-                        Click on the grid to place points. The app will fit a Bezier curve to your data using Least Squares Approximation.
-                    </p>
-                </div>
-            </div>
-        )}
-      </div>
+        {/* HEADER (Mobile Only) */}
+        <header className="md:hidden flex items-center justify-between p-4 border-b border-light-border dark:border-dark-border bg-white/50 dark:bg-neutral-900/50 backdrop-blur-md z-50">
+           <h1 className="text-sm font-bold tracking-widest uppercase">CurveStack</h1>
+           <div className="flex gap-4">
+             <button onClick={toggleTheme} className="p-1">
+               {isDark ? '☀️' : '🌙'}
+             </button>
+             <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="p-1">
+               <svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+             </button>
+           </div>
+        </header>
 
-      {/* Sidebar Controls */}
-      <div className="h-[40vh] lg:h-full order-1 lg:order-2">
-        <ControlPanel 
-            degree={degree}
-            setDegree={setDegree}
-            selectedMethods={selectedMethods}
-            toggleMethod={toggleMethod}
-            clearPoints={() => setPoints([])}
-            pointsCount={points.length}
-            showResiduals={showResiduals}
-            setShowResiduals={setShowResiduals}
-            showControlPolygon={showControlPolygon}
-            setShowControlPolygon={setShowControlPolygon}
-            loadPreset={loadPreset}
-            results={results}
-        />
+        {/* LEFT PANEL (Controls) */}
+        <motion.aside 
+            initial={false}
+            animate={isDesktop 
+              ? { width: isLeftPanelOpen ? 320 : 0, x: 0, opacity: 1 } 
+              : { width: 320, x: isMobileMenuOpen ? 0 : '-100%', opacity: 1 }
+            }
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            className={`
+                fixed inset-y-0 left-0 z-40 shadow-2xl md:shadow-none
+                flex flex-col border-r border-light-border dark:border-dark-border
+                bg-light-panel dark:bg-dark-panel glass-panel
+                overflow-hidden
+                ${isDesktop ? 'relative' : ''}
+            `}
+        >
+            <div className="w-[320px] h-full flex flex-col">
+                <div className="p-6 border-b border-light-border dark:border-dark-border flex justify-between items-center">
+                    <div>
+                        <h1 className="text-xl font-display font-bold tracking-tight bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
+                            CurveStack
+                        </h1>
+                        <p className="text-[10px] font-mono opacity-50 uppercase mt-1">Surface Modeler v2.1</p>
+                    </div>
+                    {/* Desktop Theme Toggle */}
+                    <button onClick={toggleTheme} className="hidden md:block p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
+                        {isDark ? '☀️' : '🌙'}
+                    </button>
+                </div>
+
+                <Controls 
+                    params={params} setParams={setParams}
+                    drawnCurves={drawnCurves} setDrawnCurves={setDrawnCurves}
+                    activeCurveIndex={activeCurveIndex} setActiveCurveIndex={setActiveCurveIndex}
+                    theme={theme}
+                />
+            </div>
+        </motion.aside>
+
+        {/* CENTER (Viewer) */}
+        <main className="flex-1 relative z-0 flex flex-col min-w-0">
+            {/* Desktop Toggle Button */}
+            <button
+                onClick={() => setIsLeftPanelOpen(!isLeftPanelOpen)}
+                className={`
+                    absolute top-4 left-4 z-50 p-2 rounded-lg 
+                    bg-white/50 dark:bg-black/40 backdrop-blur-md 
+                    border border-light-border dark:border-dark-border
+                    text-gray-700 dark:text-gray-200
+                    hover:bg-white/80 dark:hover:bg-black/60
+                    transition-all duration-200
+                    hidden md:flex items-center justify-center
+                    shadow-sm group
+                `}
+                title={isLeftPanelOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+            >
+                <svg 
+                    width="20" height="20" viewBox="0 0 24 24" 
+                    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                    className="transform transition-transform group-hover:scale-110"
+                >
+                   <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                   <line x1="9" y1="3" x2="9" y2="21" />
+                   {/* Arrow indicator */}
+                   {isLeftPanelOpen 
+                     ? <path d="M14 12l-2 0m-2 0l2-2m-2 2l2 2" className="opacity-0 group-hover:opacity-100" /> 
+                     : <path d="M12 12l2 0m2 0l-2-2m2 2l-2 2" className="opacity-0 group-hover:opacity-100" />
+                   }
+                </svg>
+            </button>
+
+            <Viewer3D 
+                surfaceData={surfaceData} 
+                inputCurves={activeInputCurves} 
+                mode={visMode} 
+                theme={theme}
+            />
+            
+            {/* Overlay Gradient for depth */}
+            <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_center,transparent_20%,var(--tw-gradient-stops))] from-transparent via-transparent to-light-bg/20 dark:to-dark-bg/80"></div>
+        </main>
+
+        {/* RIGHT PANEL (Visualization) */}
+        <aside className="hidden lg:block w-[280px] border-l border-light-border dark:border-dark-border bg-light-panel dark:bg-dark-panel glass-panel z-10">
+            <RightPanel 
+                visMode={visMode} 
+                setVisMode={setVisMode} 
+                surfaceData={surfaceData}
+                theme={theme}
+            />
+        </aside>
+
+        {/* Mobile Overlay for Menu */}
+        {isMobileMenuOpen && (
+            <div 
+                className="fixed inset-0 bg-black/50 z-30 md:hidden backdrop-blur-sm"
+                onClick={() => setIsMobileMenuOpen(false)}
+            />
+        )}
       </div>
     </div>
   );

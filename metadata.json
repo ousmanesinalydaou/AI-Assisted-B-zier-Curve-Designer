@@ -1,5 +1,5 @@
 {
-  "name": "CAGD Curve Approximation Visualizer",
-  "description": "Interactive visualization of Least Squares Approximation for curve fitting, comparing Uniform vs. Chord Length parameterization methods.",
+  "name": "CurveStack Surface Generator",
+  "description": "A WebGL-based geometric modeling application that constructs 3D composite surfaces by stacking approximated curves using least-squares B-spline fitting.",
   "requestFramePermissions": []
 }
