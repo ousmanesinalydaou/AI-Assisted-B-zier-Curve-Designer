@@ -125,7 +125,7 @@ const App: React.FC = () => {
                         <h1 className="text-xl font-display font-bold tracking-tight bg-gradient-to-r from-blue-500 to-indigo-500 bg-clip-text text-transparent">
                             CurveStack
                         </h1>
-                        <p className="text-[10px] font-mono opacity-50 uppercase mt-1">Surface Modeler v2.1</p>
+                        <p className="text-[10px] font-mono opacity-50 uppercase mt-1">Surface Modeler v1.0</p>
                     </div>
                     {/* Desktop Theme Toggle */}
                     <button onClick={toggleTheme} className="hidden md:block p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/10 transition-colors">
